@@ -1,1 +1,0 @@
-console.log('solo para tener algo y subir. omitir')
