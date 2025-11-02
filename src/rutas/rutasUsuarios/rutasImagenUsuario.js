@@ -1,21 +1,17 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
-const controladorImagenes = require('../../controladores/controladorUsuario/controladorImagenUsuario');
+const controladorImagenUsuario = require('../../controladores/controladorUsuario/controladorImagenUsuario');
 
 const rutas = Router();
 
 // 🔹 Listar todas las imágenes
-rutas.get('/listar', controladorImagenes.listar);
+rutas.get('/listar', controladorImagenUsuario.listar);
 
 // 🔹 Guardar imagen
 rutas.post(
   '/guardar',
   [
-    body('url')
-      .notEmpty()
-      .withMessage('El campo "url" es obligatorio')
-      .isString()
-      .withMessage('El campo "url" debe ser una cadena de texto'),
+   
     
     body('usuarioId')
       .notEmpty()
@@ -23,7 +19,7 @@ rutas.post(
       .isInt()
       .withMessage('El "usuarioId" debe ser un número entero')
   ],
-  controladorImagenes.guardar
+  controladorImagenUsuario.guardar
 );
 
 // 🔹 Editar imagen
@@ -46,7 +42,7 @@ rutas.put(
       .isInt()
       .withMessage('El "usuarioId" debe ser un número entero')
   ],
-  controladorImagenes.editar
+  controladorImagenUsuario.editar
 );
 
 // 🔹 Eliminar imagen
@@ -59,13 +55,13 @@ rutas.delete(
       .isInt()
       .withMessage('El campo "id" debe ser un número entero')
   ],
-  controladorImagenes.eliminar
+  controladorImagenUsuario.eliminar
   
 );
 
 rutas.post('/imagen',
-  controladorImagenes.validarImagenUsuario,
-  controladorImagenes.guardarImagenUsuario
+  controladorImagenUsuario.validarImagenUsuario,
+  controladorImagenUsuario.guardarImagenUsuario
 )
 
 

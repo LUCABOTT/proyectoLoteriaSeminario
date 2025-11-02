@@ -18,7 +18,7 @@ exports.resizeImage = async (file) => {
 };
 
 // 🔹 Configuración de almacenamiento de Multer
-const diskStorageClientes = multer.diskStorage({
+const diskStorageUsuarios = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null,path.join(__dirname, "../../public/img/usuarios")); // carpeta donde se guardarán
   },
@@ -33,7 +33,7 @@ const diskStorageClientes = multer.diskStorage({
       const ext = path.extname(file.originalname);
       cb(
                 null,
-                "cliente-" +
+                "usuario-" +
                 Date.now() +
                 uniqueSuffix +
                 "-" +
@@ -56,8 +56,8 @@ const fileFilter = (req, file, cb) => {
 };
 
 // 🔹 Configuración final del middleware de subida
-exports.uploadImagenCliente = multer({
-  storage: diskStorageClientes,
+exports.uploadImagenUsuario = multer({
+  storage: diskStorageUsuarios,
     fileFilter: (req, file, cb) => {
 
         if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
@@ -70,4 +70,4 @@ exports.uploadImagenCliente = multer({
     limits: {
         fileSize: 5000000, // 5MB
     },
-}).single("imagen"); // atributo que define como se va llamar el contenerdor e la imagen
+}).single("url"); // atributo que define como se va llamar el contenerdor e la imagen
