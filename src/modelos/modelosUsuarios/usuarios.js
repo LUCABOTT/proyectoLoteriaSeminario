@@ -17,23 +17,23 @@ const usuarios= db.define(
     },
     segundoNombre: {
       type: DataTypes.STRING(50),
-      allowNull: false
-       // clave primaria, el inge no lo puso
+      allowNull: true
+       
     },
     primerApellido: {
       type: DataTypes.STRING(50),
       allowNull: true
-       // clave primaria, el inge no lo puso
+      
     },
     segundoApellido: {
       type: DataTypes.STRING(50),
-      allowNull: false
-       // clave primaria, el inge no lo puso
+      allowNull: true
+       
     },
     identidad: {
       type: DataTypes.STRING(50),
       allowNull: true
-       // clave primaria, el inge no lo puso
+       
     },
     useremail: {
       type: DataTypes.STRING(80),

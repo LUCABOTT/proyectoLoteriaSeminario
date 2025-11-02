@@ -8,6 +8,8 @@ const ModeloRoles = require('./modelos/modelosUsuarios/roles');
 const ModeloRolesUsuarios = require('./modelos/modelosUsuarios/roles_usuarios');
 const ModeloFunciones = require('./modelos/modelosUsuarios/funciones');
 const ModeloFuncionesRoles = require('./modelos/modelosUsuarios/funciones_roles');
+const authenticateToken = require('./middlewares/auth');
+const authRoutes = require('./rutas/auth');
 const swaggerUI = require('swagger-ui-express');
 const path = require('path');
 require('dotenv').config();
@@ -63,8 +65,7 @@ const app = express();
       });
 
 
-    await ModeloUsuario.sync({ alter: true });
-    console.log('🧩 Modelo Usuario sincronizado correctamente');
+    
     await ModeloImagenUsuario.sync({ alter: true});
     console.log('Modelo Imagenes Usuarios sincronizada correctamente');
 
@@ -78,6 +79,8 @@ const app = express();
     console.log('🧩 Modelo Funciones sincronizado correctamente');
      await ModeloFuncionesRoles.sync({ alter: true });
     console.log('🧩 Modelo FuncionesRoles incronizado correctamente');
+    await ModeloUsuario.sync({ alter: false });
+    console.log('🧩 Modelo Usuario sincronizado correctamente');
 
 
 
@@ -94,14 +97,15 @@ app.set('port', PORT);
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use('/auth', authRoutes);
 
-app.use('/api/apiUsuarios', require('./rutas/rutasUsuarios/rutaUsuarios'));
-app.use('/api/apiImagenesUsuarios', require('./rutas/rutasUsuarios/rutasImagenUsuario'));
-app.use('/api/apiUsuariosTelefonos', require('./rutas/rutasUsuarios/rutasTelefonosUsuarios'));
-app.use('/api/apiRoles', require('./rutas/rutasUsuarios/rutasRoles'));
-app.use('/api/apiRolesUsuarios', require('./rutas/rutasUsuarios/rutasRolesUsuarios'));
-app.use('/api/apiFunciones', require('./rutas/rutasUsuarios/rutasFunciones'));
-app.use('/api/apiFuncionesRoles', require('./rutas/rutasUsuarios/rutasFuncionesRoles'));
+app.use('/api/apiUsuarios',authenticateToken, require('./rutas/rutasUsuarios/rutaUsuarios'));
+app.use('/api/apiImagenesUsuarios',authenticateToken, require('./rutas/rutasUsuarios/rutasImagenUsuario'));
+app.use('/api/apiUsuariosTelefonos',authenticateToken,  require('./rutas/rutasUsuarios/rutasTelefonosUsuarios'));
+app.use('/api/apiRoles',authenticateToken,  require('./rutas/rutasUsuarios/rutasRoles'));
+app.use('/api/apiRolesUsuarios',authenticateToken,  require('./rutas/rutasUsuarios/rutasRolesUsuarios'));
+app.use('/api/apiFunciones',authenticateToken, require('./rutas/rutasUsuarios/rutasFunciones'));
+app.use('/api/apiFuncionesRoles',authenticateToken,  require('./rutas/rutasUsuarios/rutasFuncionesRoles'));
 
 app.use('/api/imagenes', express.static(path.join(__dirname, '../public/img')))
 
