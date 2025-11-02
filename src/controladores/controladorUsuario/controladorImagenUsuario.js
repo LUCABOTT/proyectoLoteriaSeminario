@@ -1,5 +1,10 @@
 const { validationResult } = require('express-validator');
 const ImagenesUsuarios = require('../../modelos/modelosUsuarios/imagenes');
+const { uploadImagenUsuario } = require('../../configuracion/archivos');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
 
 // 🔹 Listar todas las imágenes
 exports.listar = async (req, res) => {
@@ -113,13 +118,13 @@ exports.guardarImagenUsuario = async (req, res, next) => {
       return res.status(400).json(errors.array());
     }
 
-    const { id } = req.query;
-    const imagen = req.file.filename;
+    const { usuarioId } = req.query;
+    const url = req.file.filename;
     const rutaImagen = req.file.path; // ruta real que Multer ya creó
 
     // Verificar existencia
     if (fs.existsSync(rutaImagen)) {
-      const data = await Cliente.create({ imagen, id }); // usar await
+      const data = await ImagenesUsuarios.create({ url, usuarioId }); // usar await
 
       return res.status(201).json({
         mensaje: "Imagen guardada correctamente",
