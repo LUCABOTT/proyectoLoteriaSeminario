@@ -1,13 +1,17 @@
-const { Sequelize } = require("sequelize");
+const Sequelize = require('sequelize');
 
-const USUARIO = process.env.USUARIO || "";
-const CONTRASENA = process.env.CONTRASENA || "";
-const DB = process.env.DB || "";
+const { USUARIO_DB, CONTRASENA_DB, NOMBRE_DB } = process.env;
 
-const database = new Sequelize(DB, USUARIO, CONTRASENA, {
-  dialect: "mysql",
-  host: "localhost",
-  logging: false,
-});
+const db = new Sequelize(
+  NOMBRE_DB || '',
+  USUARIO_DB || '',
+  CONTRASENA_DB || '',
+  {
+    host: 'localhost',
+    port: 3306,
+    dialect: 'mysql',
+    logging: false,
+  }
+);
 
-module.exports = database;
+module.exports = db;
