@@ -39,6 +39,9 @@ const Juego = require("./modelos/juegoModelo");
 const Sorteo = require("./modelos/sorteoModelo");
 const Ticket = require("./modelos/ticketsModelo");
 const DetalleTicket = require("./modelos/detalleTicketModelo");
+// Modelos de Billetera
+const Billetera = require("./modelos/billetera.modelo");
+const Transaccion = require("./modelos/transaccion.modelo");
 
 // ----------------------------------------
 // 5) Middlewares y rutas existentes del repo
@@ -128,6 +131,12 @@ function setupAssociations() {
   // ===== Lotería: Ticket 1—N DetalleTicket
   DetalleTicket.belongsTo(Ticket, { foreignKey: "IdTicket" });
   Ticket.hasMany(DetalleTicket, { foreignKey: "IdTicket" });
+
+  // ===== Billetera: Usuario 1—1 Billetera y Billetera 1—N Transaccion
+  ModeloUsuario.hasOne(Billetera, { foreignKey: "usuario", as: "billetera" });
+  Billetera.belongsTo(ModeloUsuario, { foreignKey: "usuario", as: "usuarioRef" });
+  Billetera.hasMany(Transaccion, { foreignKey: "billetera", as: "transacciones" });
+  Transaccion.belongsTo(Billetera, { foreignKey: "billetera", as: "billeteraRef" });
 }
 
 // ----------------------------------------
@@ -214,6 +223,10 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
       "Modelo FuncionesRoles",
       ModeloFuncionesRoles.sync({ alter: true }),
     );
+
+    // Sincronización Billetera
+    await syncStep("Modelo Billetera", Billetera.sync({ alter: true }));
+    await syncStep("Modelo Transaccion", Transaccion.sync({ alter: true }));
 
     // === Lotería: primero padres, luego hijas
     await syncStep("Modelo Juego", Juego.sync({ alter: true }));
