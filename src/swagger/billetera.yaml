@@ -1,65 +1,62 @@
 paths:
-  /api/billetera:
+  /api/billetera/saldo/{usuarioId}:
     get:
       tags:
         - Billetera
-      summary: Obtener información de la billetera
-      description: Retorna la información de la billetera del usuario autenticado
-      security:
-        - BearerAuth: []
+      summary: Obtener saldo de la billetera
+      description: Consulta el saldo actual de la billetera de un usuario específico
+      parameters:
+        - in: path
+          name: usuarioId
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+          example: 123
       responses:
-        '200':
-          description: Información de la billetera
+        "200":
+          description: Saldo obtenido exitosamente
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Billetera'
-                  - type: object
-                    properties:
-                      transacciones_recientes:
-                        type: array
-                        maxItems: 5
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                              example: 1
-                            tipo:
-                              type: string
-                              enum: [deposito, retiro, compra_ticket, ganancia, reembolso]
-                              example: deposito
-                            monto:
-                              type: number
-                              format: decimal
-                              example: 100.00
-                            descripcion:
-                              type: string
-                              example: Depósito via transferencia bancaria
-                            fecha:
-                              type: string
-                              format: date-time
-                              example: "2024-11-08T10:30:00Z"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          description: Billetera no encontrada (se creará automáticamente)
+                type: object
+                properties:
+                  usuario:
+                    type: integer
+                    example: 123
+                    description: ID del usuario
+                  saldo:
+                    type: number
+                    format: decimal
+                    example: 500.00
+                    description: Saldo actual en la billetera
+        "400":
+          description: usuarioId requerido
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "usuarioId requerido"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error interno del servidor"
 
-  /api/billetera/depositar:
+  /api/billetera/recargar:
     post:
       tags:
         - Billetera
-      summary: Realizar depósito
-      description: Deposita dinero en la billetera del usuario
-      security:
-        - BearerAuth: []
+      summary: Recargar billetera
+      description: Agrega dinero a la billetera del usuario para comprar tickets de lotería
       requestBody:
         required: true
         content:
@@ -67,376 +64,70 @@ paths:
             schema:
               type: object
               required:
+                - usuarioId
                 - monto
-                - metodo_pago
               properties:
+                usuarioId:
+                  type: integer
+                  example: 123
+                  description: ID del usuario que recarga la billetera
                 monto:
                   type: number
                   format: decimal
-                  minimum: 10.00
-                  maximum: 50000.00
-                  example: 500.00
-                metodo_pago:
-                  type: string
-                  enum: [transferencia, tarjeta_credito, tarjeta_debito, efectivo]
-                  example: transferencia
-                descripcion:
-                  type: string
-                  maxLength: 200
-                  example: Depósito para compra de tickets
-                numero_transaccion:
-                  type: string
-                  example: TXN123456789
-                  description: Número de transacción del método de pago (opcional)
+                  minimum: 0.01
+                  example: 100.00
+                  description: Cantidad a recargar (debe ser mayor que 0)
       responses:
-        '200':
-          description: Depósito realizado exitosamente
+        "200":
+          description: Recarga realizada exitosamente
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: Depósito realizado exitosamente
-                  transaccion:
+                  ok:
+                    type: boolean
+                    example: true
+                  billetera:
                     type: object
+                    description: Información actualizada de la billetera
                     properties:
                       id:
                         type: integer
+                        example: 1
+                      usuario_id:
+                        type: integer
                         example: 123
-                      monto:
+                      saldo:
                         type: number
                         format: decimal
-                        example: 500.00
-                      tipo:
-                        type: string
-                        example: deposito
-                      fecha:
+                        example: 600.00
+                      fecha_actualizacion:
                         type: string
                         format: date-time
                         example: "2024-11-08T10:30:00Z"
-                  saldo_anterior:
-                    type: number
-                    format: decimal
-                    example: 250.00
-                  saldo_actual:
-                    type: number
-                    format: decimal
-                    example: 750.00
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/billetera/retirar:
-    post:
-      tags:
-        - Billetera
-      summary: Realizar retiro
-      description: Retira dinero de la billetera del usuario
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - monto
-                - metodo_retiro
-              properties:
-                monto:
-                  type: number
-                  format: decimal
-                  minimum: 50.00
-                  example: 200.00
-                metodo_retiro:
-                  type: string
-                  enum: [transferencia, cheque]
-                  example: transferencia
-                cuenta_destino:
-                  type: string
-                  example: "1234567890"
-                  description: Número de cuenta para transferencia
-                banco_destino:
-                  type: string
-                  example: Banco República
-                  description: Banco de destino
-                descripcion:
-                  type: string
-                  maxLength: 200
-                  example: Retiro de ganancias
-      responses:
-        '200':
-          description: Retiro procesado exitosamente
+        "400":
+          description: Error en validación de datos
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Retiro procesado exitosamente
-                  transaccion:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 124
-                      monto:
-                        type: number
-                        format: decimal
-                        example: 200.00
-                      tipo:
-                        type: string
-                        example: retiro
-                      estado:
-                        type: string
-                        enum: [pendiente, procesado, completado, rechazado]
-                        example: pendiente
-                      fecha:
-                        type: string
-                        format: date-time
-                        example: "2024-11-08T11:30:00Z"
-                  saldo_anterior:
-                    type: number
-                    format: decimal
-                    example: 750.00
-                  saldo_actual:
-                    type: number
-                    format: decimal
-                    example: 550.00
-        '400':
-          description: Monto inválido o saldo insuficiente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/billetera/historial:
-    get:
-      tags:
-        - Billetera
-      summary: Obtener historial de transacciones
-      description: Retorna el historial completo de transacciones de la billetera
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: query
-          name: tipo
-          schema:
-            type: string
-            enum: [deposito, retiro, compra_ticket, ganancia, reembolso]
-          description: Filtrar por tipo de transacción
-        - in: query
-          name: fecha_desde
-          schema:
-            type: string
-            format: date
-          description: Filtrar transacciones desde esta fecha
-        - in: query
-          name: fecha_hasta
-          schema:
-            type: string
-            format: date
-          description: Filtrar transacciones hasta esta fecha
-        - in: query
-          name: page
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-          description: Número de página
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-          description: Cantidad de resultados por página
-      responses:
-        '200':
-          description: Historial de transacciones
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  transacciones:
-                    type: array
+                oneOf:
+                  - type: array
+                    description: Errores de validación
                     items:
                       type: object
                       properties:
-                        id:
-                          type: integer
-                          example: 1
-                        tipo:
+                        msg:
                           type: string
-                          enum: [deposito, retiro, compra_ticket, ganancia, reembolso]
-                          example: deposito
-                        monto:
-                          type: number
-                          format: decimal
-                          example: 100.00
-                        descripcion:
+                          example: "usuarioId es requerido"
+                        param:
                           type: string
-                          example: Depósito via transferencia bancaria
-                        fecha:
+                          example: "usuarioId"
+                        location:
                           type: string
-                          format: date-time
-                          example: "2024-11-08T10:30:00Z"
-                        estado:
-                          type: string
-                          enum: [pendiente, procesado, completado, rechazado]
-                          example: completado
-                        metodo_pago:
-                          type: string
-                          example: transferencia
-                        numero_transaccion:
-                          type: string
-                          example: TXN123456789
-                  resumen:
-                    type: object
+                          example: "body"
+                  - type: object
                     properties:
-                      total_depositos:
-                        type: number
-                        format: decimal
-                        example: 1500.00
-                      total_retiros:
-                        type: number
-                        format: decimal
-                        example: 300.00
-                      total_gastado_tickets:
-                        type: number
-                        format: decimal
-                        example: 800.00
-                      total_ganancias:
-                        type: number
-                        format: decimal
-                        example: 250.00
-                      saldo_actual:
-                        type: number
-                        format: decimal
-                        example: 650.00
-                  paginacion:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                        example: 45
-                      page:
-                        type: integer
-                        example: 1
-                      totalPages:
-                        type: integer
-                        example: 3
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/billetera/estadisticas:
-    get:
-      tags:
-        - Billetera
-      summary: Obtener estadísticas de la billetera
-      description: Retorna estadísticas detalladas de la actividad financiera del usuario
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: query
-          name: periodo
-          schema:
-            type: string
-            enum: [semana, mes, trimestre, año]
-            default: mes
-          description: Período para las estadísticas
-      responses:
-        '200':
-          description: Estadísticas de la billetera
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  periodo:
-                    type: string
-                    example: mes
-                  saldo_actual:
-                    type: number
-                    format: decimal
-                    example: 650.00
-                  movimientos:
-                    type: object
-                    properties:
-                      total_depositos:
-                        type: number
-                        format: decimal
-                        example: 800.00
-                      total_retiros:
-                        type: number
-                        format: decimal
-                        example: 200.00
-                      total_gastado:
-                        type: number
-                        format: decimal
-                        example: 500.00
-                      total_ganado:
-                        type: number
-                        format: decimal
-                        example: 100.00
-                  tickets:
-                    type: object
-                    properties:
-                      cantidad_comprada:
-                        type: integer
-                        example: 15
-                      monto_invertido:
-                        type: number
-                        format: decimal
-                        example: 500.00
-                      tickets_ganadores:
-                        type: integer
-                        example: 2
-                      ganancias_tickets:
-                        type: number
-                        format: decimal
-                        example: 100.00
-                      roi_percentage:
-                        type: number
-                        format: decimal
-                        example: 20.00
-                        description: Retorno sobre inversión en porcentaje
-                  grafico_mensual:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        mes:
-                          type: string
-                          example: "2024-11"
-                        depositos:
-                          type: number
-                          format: decimal
-                          example: 300.00
-                        gastos:
-                          type: number
-                          format: decimal
-                          example: 250.00
-                        ganancias:
-                          type: number
-                          format: decimal
-                          example: 50.00
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                      error:
+                        type: string
+                        example: "usuarioId y monto son requeridos"

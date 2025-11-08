@@ -42,7 +42,7 @@ paths:
                   format: date
                   example: 1990-01-15
       responses:
-        '201':
+        "201":
           description: Usuario registrado exitosamente
           content:
             application/json:
@@ -61,16 +61,16 @@ paths:
                       id:
                         type: integer
                         example: 1
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Conflicto - Email ya registrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /auth/login:
     post:
@@ -96,7 +96,7 @@ paths:
                   type: string
                   example: password123
       responses:
-        '200':
+        "200":
           description: Login exitoso
           content:
             application/json:
@@ -124,57 +124,13 @@ paths:
                       apellido:
                         type: string
                         example: Pérez
-        '401':
+        "401":
           description: Credenciales inválidas
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /auth/profile:
-    get:
-      tags:
-        - Autenticación
-      summary: Obtener perfil del usuario
-      description: Retorna la información del perfil del usuario autenticado
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Perfil del usuario
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Usuario'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /auth/logout:
-    post:
-      tags:
-        - Autenticación
-      summary: Cerrar sesión
-      description: Invalida el token actual del usuario
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: Sesión cerrada exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Sesión cerrada exitosamente
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
