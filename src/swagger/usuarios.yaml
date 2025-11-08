@@ -1,0 +1,410 @@
+paths:
+  /api/apiUsuarios:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener todos los usuarios
+      description: Retorna una lista paginada de todos los usuarios del sistema
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Número de página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Cantidad de resultados por página
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Búsqueda por nombre, apellido o email
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Usuario'
+                  total:
+                    type: integer
+                    example: 50
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 5
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Usuarios
+      summary: Crear un nuevo usuario
+      description: Crea un nuevo usuario en el sistema (solo administradores)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - segundoNombre
+                - segundoApellido
+                - useremail
+                - userpswd
+              properties:
+                primerNombre:
+                  type: string
+                  example: María
+                segundoNombre:
+                  type: string
+                  example: Elena
+                primerApellido:
+                  type: string
+                  example: González
+                segundoApellido:
+                  type: string
+                  example: Pérez
+                identidad:
+                  type: string
+                  example: 12345678901
+                useremail:
+                  type: string
+                  format: email
+                  example: nuevo@ejemplo.com
+                userpswd:
+                  type: string
+                  minLength: 6
+                  example: password123
+                usertipo:
+                  type: string
+                  enum: [PBL, ADM, VND, AUD]
+                  default: PBL
+                  example: PBL
+                fechaNacimiento:
+                  type: string
+                  format: date
+                  example: 1985-05-20
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Usuario creado exitosamente
+                  usuario:
+                    $ref: '#/components/schemas/Usuario'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Email ya registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/apiUsuarios/{id}:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener usuario por ID
+      description: Retorna la información de un usuario específico
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      responses:
+        '200':
+          description: Información del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      tags:
+        - Usuarios
+      summary: Actualizar usuario
+      description: Actualiza la información de un usuario existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: usuario_actualizado@ejemplo.com
+                nombre:
+                  type: string
+                  example: Juan Carlos
+                apellido:
+                  type: string
+                  example: Pérez González
+                fecha_nacimiento:
+                  type: string
+                  format: date
+                  example: 1990-01-15
+                activo:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Usuario actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Usuario actualizado exitosamente
+                  usuario:
+                    $ref: '#/components/schemas/Usuario'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Usuarios
+      summary: Eliminar usuario
+      description: Elimina un usuario del sistema (solo administradores)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      responses:
+        '200':
+          description: Usuario eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Usuario eliminado exitosamente
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/apiImagenesUsuarios/{userId}/upload:
+    post:
+      tags:
+        - Usuarios
+      summary: Subir imagen de perfil
+      description: Sube una imagen de perfil para un usuario
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: integer
+          description: ID del usuario
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                imagen:
+                  type: string
+                  format: binary
+                  description: Archivo de imagen (JPG, PNG, GIF)
+      responses:
+        '200':
+          description: Imagen subida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Imagen subida exitosamente
+                  imagen:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      usuario_id:
+                        type: integer
+                        example: 1
+                      nombre_archivo:
+                        type: string
+                        example: perfil_123456.jpg
+                      ruta:
+                        type: string
+                        example: /api/imagenes/usuarios/perfil_123456.jpg
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/apiUsuariosTelefonos:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener teléfonos de usuarios
+      description: Retorna la lista de teléfonos asociados a usuarios
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de teléfonos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    usuario_id:
+                      type: integer
+                      example: 1
+                    telefono:
+                      type: string
+                      example: "+598 99 123 456"
+                    tipo:
+                      type: string
+                      enum: [movil, fijo, trabajo]
+                      example: movil
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Usuarios
+      summary: Agregar teléfono a usuario
+      description: Agrega un nuevo teléfono a un usuario
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usuario_id
+                - telefono
+                - tipo
+              properties:
+                usuario_id:
+                  type: integer
+                  example: 1
+                telefono:
+                  type: string
+                  example: "+598 99 123 456"
+                tipo:
+                  type: string
+                  enum: [movil, fijo, trabajo]
+                  example: movil
+      responses:
+        '201':
+          description: Teléfono agregado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Teléfono agregado exitosamente
+                  telefono:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      usuario_id:
+                        type: integer
+                        example: 1
+                      telefono:
+                        type: string
+                        example: "+598 99 123 456"
+                      tipo:
+                        type: string
+                        example: movil
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'

@@ -1,0 +1,431 @@
+paths:
+  /api/tickets:
+    get:
+      tags:
+        - Tickets
+      summary: Obtener tickets
+      description: Retorna los tickets del usuario autenticado o todos los tickets (administradores)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: usuario_id
+          schema:
+            type: integer
+          description: ID del usuario (solo administradores)
+        - in: query
+          name: sorteo_id
+          schema:
+            type: integer
+          description: Filtrar por ID de sorteo
+        - in: query
+          name: estado
+          schema:
+            type: string
+            enum: [activo, cancelado, ganador]
+          description: Filtrar por estado del ticket
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Número de página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Cantidad de resultados por página
+      responses:
+        '200':
+          description: Lista de tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Ticket'
+                        - type: object
+                          properties:
+                            sorteo:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                fecha_sorteo:
+                                  type: string
+                                  format: date-time
+                                  example: "2024-12-15T20:00:00Z"
+                                estado:
+                                  type: string
+                                  example: pendiente
+                            usuario:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                nombre:
+                                  type: string
+                                  example: Juan
+                                apellido:
+                                  type: string
+                                  example: Pérez
+                  total:
+                    type: integer
+                    example: 25
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 3
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Tickets
+      summary: Comprar ticket
+      description: Compra un nuevo ticket para un sorteo específico
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sorteo_id
+                - numeros_elegidos
+              properties:
+                sorteo_id:
+                  type: integer
+                  example: 1
+                numeros_elegidos:
+                  type: string
+                  example: "15,23,42,8,91,33"
+                  description: Números elegidos separados por comas
+                cantidad:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  default: 1
+                  example: 1
+                  description: Cantidad de tickets con los mismos números
+      responses:
+        '201':
+          description: Ticket(s) comprado(s) exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Ticket comprado exitosamente
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+                  total_pagado:
+                    type: number
+                    format: decimal
+                    example: 50.00
+                  saldo_restante:
+                    type: number
+                    format: decimal
+                    example: 450.00
+        '400':
+          description: Error en la compra (sorteo cerrado, números inválidos, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          description: Saldo insuficiente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Sorteo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/tickets/{id}:
+    get:
+      tags:
+        - Tickets
+      summary: Obtener ticket por ID
+      description: Retorna la información detallada de un ticket específico
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del ticket
+      responses:
+        '200':
+          description: Información del ticket
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Ticket'
+                  - type: object
+                    properties:
+                      sorteo:
+                        $ref: '#/components/schemas/Sorteo'
+                      usuario:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          nombre:
+                            type: string
+                            example: Juan
+                          apellido:
+                            type: string
+                            example: Pérez
+                          email:
+                            type: string
+                            example: juan@ejemplo.com
+                      numeros_acertados:
+                        type: integer
+                        example: 3
+                        description: Cantidad de números acertados (si el sorteo ya se realizó)
+                      premio_ganado:
+                        type: number
+                        format: decimal
+                        example: 1000.00
+                        description: Premio ganado (si aplica)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          description: No autorizado para ver este ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Tickets
+      summary: Cancelar ticket
+      description: Cancela un ticket antes del sorteo (reembolso automático)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del ticket
+      responses:
+        '200':
+          description: Ticket cancelado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Ticket cancelado exitosamente
+                  reembolso:
+                    type: number
+                    format: decimal
+                    example: 50.00
+                  saldo_actual:
+                    type: number
+                    format: decimal
+                    example: 500.00
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          description: No se puede cancelar el ticket (sorteo ya realizado)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: No autorizado para cancelar este ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/tickets/mis-tickets:
+    get:
+      tags:
+        - Tickets
+      summary: Obtener mis tickets
+      description: Retorna todos los tickets del usuario autenticado
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: estado
+          schema:
+            type: string
+            enum: [activo, cancelado, ganador]
+          description: Filtrar por estado del ticket
+        - in: query
+          name: fecha_desde
+          schema:
+            type: string
+            format: date
+          description: Filtrar tickets desde esta fecha
+        - in: query
+          name: fecha_hasta
+          schema:
+            type: string
+            format: date
+          description: Filtrar tickets hasta esta fecha
+      responses:
+        '200':
+          description: Lista de tickets del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Ticket'
+                        - type: object
+                          properties:
+                            sorteo:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                fecha_sorteo:
+                                  type: string
+                                  format: date-time
+                                  example: "2024-12-15T20:00:00Z"
+                                estado:
+                                  type: string
+                                  example: pendiente
+                                juego:
+                                  type: object
+                                  properties:
+                                    nombre:
+                                      type: string
+                                      example: Lotería Nacional
+                  total_invertido:
+                    type: number
+                    format: decimal
+                    example: 250.00
+                  total_ganado:
+                    type: number
+                    format: decimal
+                    example: 150.00
+                  tickets_activos:
+                    type: integer
+                    example: 3
+                  tickets_ganadores:
+                    type: integer
+                    example: 1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/tickets/generar-numeros-aleatorios/{sorteo_id}:
+    get:
+      tags:
+        - Tickets
+      summary: Generar números aleatorios
+      description: Genera números aleatorios válidos para un sorteo específico
+      parameters:
+        - in: path
+          name: sorteo_id
+          required: true
+          schema:
+            type: integer
+          description: ID del sorteo
+        - in: query
+          name: cantidad
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 1
+          description: Cantidad de conjuntos de números a generar
+      responses:
+        '200':
+          description: Números aleatorios generados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sorteo_id:
+                    type: integer
+                    example: 1
+                  numeros_generados:
+                    type: array
+                    items:
+                      type: string
+                      example: "15,23,42,8,91,33"
+                  juego:
+                    type: object
+                    properties:
+                      nombre:
+                        type: string
+                        example: Lotería Nacional
+                      max_numeros:
+                        type: integer
+                        example: 6
+                      rango_numeros:
+                        type: string
+                        example: "1-100"
+        '404':
+          description: Sorteo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Sorteo no disponible para compra
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'

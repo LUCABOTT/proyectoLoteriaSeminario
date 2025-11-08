@@ -1,0 +1,120 @@
+# Documentación Principal API Sistema de Lotería - Seminario
+
+# Este archivo contiene documentación adicional y ejemplos de uso general
+# para complementar la documentación específica de cada módulo
+
+tags:
+  - name: Autenticación
+    description: Endpoints para registro, login y gestión de sesiones
+  - name: Usuarios
+    description: Gestión de usuarios y perfiles
+  - name: Roles y Permisos
+    description: Sistema de roles y control de acceso
+  - name: Juegos
+    description: Gestión de juegos de lotería
+  - name: Sorteos
+    description: Administración de sorteos y resultados
+  - name: Tickets
+    description: Compra y gestión de tickets de lotería
+  - name: Billetera
+    description: Sistema de billetera virtual y transacciones
+
+# Ejemplos de uso común
+examples:
+  auth_workflow:
+    summary: Flujo de autenticación completo
+    description: |
+      1. Registrar usuario con POST /auth/register
+      2. Hacer login con POST /auth/login para obtener token
+      3. Usar el token en el header Authorization: Bearer <token>
+      4. Acceder a endpoints protegidos
+      5. Cerrar sesión con POST /auth/logout
+
+  ticket_purchase_workflow:
+    summary: Flujo de compra de tickets
+    description: |
+      1. Autenticarse y obtener token
+      2. Consultar juegos disponibles con GET /api/juegos
+      3. Ver sorteos pendientes con GET /api/sorteos?estado=pendiente
+      4. Verificar saldo en billetera con GET /api/billetera
+      5. Depositar dinero si es necesario con POST /api/billetera/depositar
+      6. Generar números aleatorios (opcional) con GET /api/tickets/generar-numeros-aleatorios/{sorteo_id}
+      7. Comprar ticket con POST /api/tickets
+      8. Verificar compra con GET /api/tickets/mis-tickets
+
+  admin_workflow:
+    summary: Flujo de administración
+    description: |
+      1. Autenticarse como administrador
+      2. Crear juego con POST /api/juegos
+      3. Programar sorteo con POST /api/sorteos
+      4. Esperar a que se vendan tickets
+      5. Realizar sorteo con POST /api/sorteos/{id}/realizar
+      6. Consultar ganadores y estadísticas
+
+# Códigos de error comunes
+error_responses:
+  rate_limit:
+    description: |
+      La API implementa límites de velocidad para prevenir abuso:
+      - 100 requests por minuto para usuarios autenticados
+      - 20 requests por minuto para usuarios no autenticados
+      - 1000 requests por hora por usuario
+
+  validation_errors:
+    description: |
+      Los errores de validación retornan un objeto con:
+      - error: descripción general del error
+      - details: array con errores específicos de cada campo
+      - field: nombre del campo con error
+
+# Mejores prácticas
+best_practices:
+  pagination:
+    description: |
+      Endpoints que retornan listas implementan paginación:
+      - Usar parámetros ?page=1&limit=10
+      - Máximo 100 items por página
+      - Response incluye total, page, totalPages
+
+  filtering:
+    description: |
+      Muchos endpoints soportan filtros:
+      - Fechas en formato ISO 8601: 2024-11-08T10:30:00Z
+      - Búsquedas son case-insensitive
+      - Usar operadores where sea aplicable
+
+  security:
+    description: |
+      Consideraciones de seguridad:
+      - Tokens JWT expiran en 24 horas
+      - Renovar tokens antes de expiración
+      - No almacenar tokens en localStorage del navegador
+      - Usar HTTPS en producción
+
+# Webhooks disponibles (futuras implementaciones)
+webhooks:
+  sorteo_realizado:
+    description: Se dispara cuando se completa un sorteo
+    payload:
+      sorteo_id: integer
+      fecha_sorteo: string
+      numeros_ganadores: string
+      total_ganadores: integer
+
+  ticket_ganador:
+    description: Se dispara cuando un ticket resulta ganador
+    payload:
+      ticket_id: integer
+      usuario_id: integer
+      premio: decimal
+      numeros_acertados: integer
+
+# Límites del sistema
+limits:
+  max_tickets_per_purchase: 10
+  max_deposit_amount: 50000.00
+  min_deposit_amount: 10.00
+  min_withdrawal_amount: 50.00
+  max_numbers_per_ticket: 10
+  session_timeout_minutes: 1440  # 24 horas

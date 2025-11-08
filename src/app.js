@@ -13,13 +13,12 @@ const morgan = require("morgan");
 const path = require("path");
 const db = require("./configuracion/db");
 
-// Swagger (opcional, protegido)
 let swaggerUI, swaggerDoc;
 try {
   swaggerUI = require("swagger-ui-express");
-  swaggerDoc = require("./configuracion/swagger");
+  swaggerDoc = require("./configuracion/swagger.js");
 } catch {
-  /* sin swagger */
+  console.warn("Swagger UI no está disponible");
 }
 
 // ----------------------------------------
@@ -145,7 +144,7 @@ app.use(express.json());
 // Swagger UI si está disponible
 if (swaggerUI && swaggerDoc) {
   app.use("/api/docs", swaggerUI.serve, swaggerUI.setup(swaggerDoc));
-  console.log("Swagger UI montado en /api/docs");
+  console.log(`Swagger disponible en http://localhost:${PORT}/api/docs`);
 }
 
 // Auth base
@@ -197,12 +196,24 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
     await syncStep("Modelo Funciones", ModeloFunciones.sync({ alter: true }));
 
     // Luego hijas directas
-    await syncStep("Modelo TelefonosUsuarios", ModeloTelefonosUsuarios.sync({ alter: true }));
-    await syncStep("Modelo ImagenesUsuarios", ModeloImagenUsuario.sync({ alter: true }));
+    await syncStep(
+      "Modelo TelefonosUsuarios",
+      ModeloTelefonosUsuarios.sync({ alter: true }),
+    );
+    await syncStep(
+      "Modelo ImagenesUsuarios",
+      ModeloImagenUsuario.sync({ alter: true }),
+    );
 
     // Luego tablas puente del repo
-    await syncStep("Modelo RolesUsuarios", ModeloRolesUsuarios.sync({ alter: true }));
-    await syncStep("Modelo FuncionesRoles", ModeloFuncionesRoles.sync({ alter: true }));
+    await syncStep(
+      "Modelo RolesUsuarios",
+      ModeloRolesUsuarios.sync({ alter: true }),
+    );
+    await syncStep(
+      "Modelo FuncionesRoles",
+      ModeloFuncionesRoles.sync({ alter: true }),
+    );
 
     // === Lotería: primero padres, luego hijas
     await syncStep("Modelo Juego", Juego.sync({ alter: true }));
