@@ -5,7 +5,7 @@ const Billetera = database.define(
   "Billetera",
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    usuario: { type: DataTypes.INTEGER, allowNull: false },
+    usuario: { type: DataTypes.BIGINT, allowNull: false },
     saldo: { type: DataTypes.DECIMAL, defaultValue: 0 },
     estado: {
       type: DataTypes.ENUM("Activa", "Congelada"),
