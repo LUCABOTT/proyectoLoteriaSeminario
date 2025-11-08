@@ -45,7 +45,7 @@ paths:
             default: 10
           description: Cantidad de resultados por página
       responses:
-        '200':
+        "200":
           description: Lista de sorteos
           content:
             application/json:
@@ -55,7 +55,7 @@ paths:
                   sorteos:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Sorteo'
+                      $ref: "#/components/schemas/Sorteo"
                   total:
                     type: integer
                     example: 100
@@ -65,8 +65,8 @@ paths:
                   totalPages:
                     type: integer
                     example: 10
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /api/sorteos/guardar:
     post:
@@ -101,7 +101,7 @@ paths:
                   format: decimal
                   example: 1000000.00
       responses:
-        '201':
+        "201":
           description: Sorteo creado exitosamente
           content:
             application/json:
@@ -112,96 +112,60 @@ paths:
                     type: string
                     example: Sorteo creado exitosamente
                   sorteo:
-                    $ref: '#/components/schemas/Sorteo'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+                    $ref: "#/components/schemas/Sorteo"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: Juego no encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
-  /api/sorteos/{id}:
-    get:
-      tags:
-        - Sorteos
-      summary: Obtener sorteo por ID
-      description: Retorna la información detallada de un sorteo específico
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del sorteo
-      responses:
-        '200':
-          description: Información del sorteo
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Sorteo'
-                  - type: object
-                    properties:
-                      juego:
-                        $ref: '#/components/schemas/Juego'
-                      total_tickets:
-                        type: integer
-                        example: 500
-                      total_recaudado:
-                        type: number
-                        format: decimal
-                        example: 25000.00
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
+  /api/sorteos/editar:
     put:
       tags:
         - Sorteos
-      summary: Actualizar sorteo
-      description: Actualiza la información de un sorteo (solo administradores)
+      summary: Editar sorteo
+      description: Actualiza la información de un sorteo existente
       security:
         - BearerAuth: []
       parameters:
-        - in: path
+        - in: query
           name: id
           required: true
           schema:
             type: integer
-          description: ID del sorteo
+          description: ID del sorteo a editar
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                fecha_sorteo:
+                IdJuego:
+                  type: integer
+                  description: ID del juego (opcional)
+                Cierre:
                   type: string
                   format: date-time
-                  example: "2024-12-20T20:00:00Z"
-                descripcion:
+                  description: Fecha de cierre del sorteo (opcional)
+                Estado:
                   type: string
-                  example: Sorteo especial de fin de año
-                premio_principal:
-                  type: number
-                  format: decimal
-                  example: 2000000.00
-                estado:
-                  type: string
-                  enum: [pendiente, realizado, cancelado]
-                  example: pendiente
+                  enum: [programado, abierto, cerrado, sorteado, anulado]
+                  description: Estado del sorteo (opcional)
+                NumerosGanadores:
+                  type: array
+                  items:
+                    type: integer
+                  description: Array de números ganadores (opcional)
       responses:
-        '200':
-          description: Sorteo actualizado exitosamente
+        "200":
+          description: Sorteo editado exitosamente
           content:
             application/json:
               schema:
@@ -209,163 +173,55 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Sorteo actualizado exitosamente
-                  sorteo:
-                    $ref: '#/components/schemas/Sorteo'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                    example: "Sorteo editado exitosamente"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Sorteo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
+  /api/sorteos/eliminar:
     delete:
       tags:
         - Sorteos
-      summary: Cancelar sorteo
-      description: Cancela un sorteo pendiente (solo administradores)
+      summary: Eliminar sorteo
+      description: Elimina un sorteo del sistema
       security:
         - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del sorteo
-      responses:
-        '200':
-          description: Sorteo cancelado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Sorteo cancelado exitosamente
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '400':
-          description: No se puede cancelar un sorteo realizado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/sorteos/{id}/realizar:
-    post:
-      tags:
-        - Sorteos
-      summary: Realizar sorteo
-      description: Ejecuta el sorteo y genera los números ganadores (solo administradores)
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del sorteo
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                numeros_ganadores:
-                  type: string
-                  example: "15,23,42,8,91,33"
-                  description: Números ganadores separados por comas (opcional, se generan automáticamente si no se proporcionan)
-      responses:
-        '200':
-          description: Sorteo realizado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Sorteo realizado exitosamente
-                  sorteo:
-                    $ref: '#/components/schemas/Sorteo'
-                  ganadores:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        ticket_id:
-                          type: integer
-                          example: 123
-                        usuario:
-                          type: string
-                          example: Juan Pérez
-                        numeros_acertados:
-                          type: integer
-                          example: 6
-                        premio:
-                          type: number
-                          format: decimal
-                          example: 1000000.00
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '400':
-          description: El sorteo ya fue realizado o está cancelado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/sorteos/proximos:
-    get:
-      tags:
-        - Sorteos
-      summary: Obtener próximos sorteos
-      description: Retorna los sorteos próximos a realizarse
       parameters:
         - in: query
-          name: limit
+          name: id
+          required: true
           schema:
             type: integer
-            minimum: 1
-            maximum: 20
-            default: 5
-          description: Cantidad máxima de sorteos a retornar
+          description: ID del sorteo a eliminar
       responses:
-        '200':
-          description: Lista de próximos sorteos
+        "200":
+          description: Sorteo eliminado exitosamente
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  allOf:
-                    - $ref: '#/components/schemas/Sorteo'
-                    - type: object
-                      properties:
-                        juego:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                              example: 1
-                            nombre:
-                              type: string
-                              example: Lotería Nacional
-                        tiempo_restante:
-                          type: string
-                          example: "2 días 5 horas 30 minutos"
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sorteo eliminado exitosamente"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Sorteo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

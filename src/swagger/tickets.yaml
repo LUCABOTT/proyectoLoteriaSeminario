@@ -40,7 +40,7 @@ paths:
             default: 10
           description: Cantidad de resultados por página
       responses:
-        '200':
+        "200":
           description: Lista de tickets
           content:
             application/json:
@@ -51,7 +51,7 @@ paths:
                     type: array
                     items:
                       allOf:
-                        - $ref: '#/components/schemas/Ticket'
+                        - $ref: "#/components/schemas/Ticket"
                         - type: object
                           properties:
                             sorteo:
@@ -88,10 +88,10 @@ paths:
                   totalPages:
                     type: integer
                     example: 3
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /api/tickets/guardar:
     post:
@@ -126,7 +126,7 @@ paths:
                   example: 1
                   description: Cantidad de tickets con los mismos números
       responses:
-        '201':
+        "201":
           description: Ticket(s) comprado(s) exitosamente
           content:
             application/json:
@@ -139,7 +139,7 @@ paths:
                   tickets:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Ticket'
+                      $ref: "#/components/schemas/Ticket"
                   total_pagado:
                     type: number
                     format: decimal
@@ -148,28 +148,28 @@ paths:
                     type: number
                     format: decimal
                     example: 450.00
-        '400':
+        "400":
           description: Error en la compra (sorteo cerrado, números inválidos, etc.)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '402':
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
           description: Saldo insuficiente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Sorteo no encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /api/tickets/{id}:
     get:
@@ -187,17 +187,17 @@ paths:
             type: integer
           description: ID del ticket
       responses:
-        '200':
+        "200":
           description: Información del ticket
           content:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/Ticket'
+                  - $ref: "#/components/schemas/Ticket"
                   - type: object
                     properties:
                       sorteo:
-                        $ref: '#/components/schemas/Sorteo'
+                        $ref: "#/components/schemas/Sorteo"
                       usuario:
                         type: object
                         properties:
@@ -222,18 +222,18 @@ paths:
                         format: decimal
                         example: 1000.00
                         description: Premio ganado (si aplica)
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '403':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "403":
           description: No autorizado para ver este ticket
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
     delete:
       tags:
@@ -250,7 +250,7 @@ paths:
             type: integer
           description: ID del ticket
       responses:
-        '200':
+        "200":
           description: Ticket cancelado exitosamente
           content:
             application/json:
@@ -268,165 +268,127 @@ paths:
                     type: number
                     format: decimal
                     example: 500.00
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '400':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "400":
           description: No se puede cancelar el ticket (sorteo ya realizado)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: No autorizado para cancelar este ticket
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
-  /api/tickets/mis-tickets:
-    get:
+  /api/tickets/editar:
+    put:
       tags:
         - Tickets
-      summary: Obtener mis tickets
-      description: Retorna todos los tickets del usuario autenticado
+      summary: Editar ticket
+      description: Modifica los datos de un ticket existente
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                IdUsuario:
+                  type: integer
+                  description: ID del usuario (opcional)
+                IdSorteo:
+                  type: integer
+                  description: ID del sorteo (opcional)
+                FechaCompra:
+                  type: string
+                  format: date-time
+                  description: Fecha de compra (opcional)
+                Estado:
+                  type: string
+                  enum: [pendiente, pagado, cancelado, reembolsado, anulado]
+                  description: Estado del ticket (opcional)
+                Total:
+                  type: number
+                  format: decimal
+                  minimum: 0
+                  description: Total del ticket (opcional)
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del ticket a editar
+      responses:
+        "200":
+          description: Ticket editado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ticket editado exitosamente"
+                  ticket:
+                    $ref: "#/components/schemas/Ticket"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Ticket no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/tickets/eliminar:
+    delete:
+      tags:
+        - Tickets
+      summary: Eliminar ticket
+      description: Elimina un ticket del sistema
       security:
         - BearerAuth: []
       parameters:
         - in: query
-          name: estado
-          schema:
-            type: string
-            enum: [activo, cancelado, ganador]
-          description: Filtrar por estado del ticket
-        - in: query
-          name: fecha_desde
-          schema:
-            type: string
-            format: date
-          description: Filtrar tickets desde esta fecha
-        - in: query
-          name: fecha_hasta
-          schema:
-            type: string
-            format: date
-          description: Filtrar tickets hasta esta fecha
-      responses:
-        '200':
-          description: Lista de tickets del usuario
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tickets:
-                    type: array
-                    items:
-                      allOf:
-                        - $ref: '#/components/schemas/Ticket'
-                        - type: object
-                          properties:
-                            sorteo:
-                              type: object
-                              properties:
-                                id:
-                                  type: integer
-                                  example: 1
-                                fecha_sorteo:
-                                  type: string
-                                  format: date-time
-                                  example: "2024-12-15T20:00:00Z"
-                                estado:
-                                  type: string
-                                  example: pendiente
-                                juego:
-                                  type: object
-                                  properties:
-                                    nombre:
-                                      type: string
-                                      example: Lotería Nacional
-                  total_invertido:
-                    type: number
-                    format: decimal
-                    example: 250.00
-                  total_ganado:
-                    type: number
-                    format: decimal
-                    example: 150.00
-                  tickets_activos:
-                    type: integer
-                    example: 3
-                  tickets_ganadores:
-                    type: integer
-                    example: 1
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/tickets/generar-numeros-aleatorios/{sorteo_id}:
-    get:
-      tags:
-        - Tickets
-      summary: Generar números aleatorios
-      description: Genera números aleatorios válidos para un sorteo específico
-      parameters:
-        - in: path
-          name: sorteo_id
+          name: id
           required: true
           schema:
             type: integer
-          description: ID del sorteo
-        - in: query
-          name: cantidad
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 10
-            default: 1
-          description: Cantidad de conjuntos de números a generar
+          description: ID del ticket a eliminar
       responses:
-        '200':
-          description: Números aleatorios generados
+        "200":
+          description: Ticket eliminado exitosamente
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  sorteo_id:
-                    type: integer
-                    example: 1
-                  numeros_generados:
-                    type: array
-                    items:
-                      type: string
-                      example: "15,23,42,8,91,33"
-                  juego:
-                    type: object
-                    properties:
-                      nombre:
-                        type: string
-                        example: Lotería Nacional
-                      max_numeros:
-                        type: integer
-                        example: 6
-                      rango_numeros:
-                        type: string
-                        example: "1-100"
-        '404':
-          description: Sorteo no encontrado
+                  message:
+                    type: string
+                    example: "Ticket eliminado exitosamente"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Ticket no encontrado
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '400':
-          description: Sorteo no disponible para compra
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
