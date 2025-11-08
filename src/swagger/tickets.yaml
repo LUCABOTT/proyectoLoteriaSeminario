@@ -1,5 +1,5 @@
 paths:
-  /api/tickets:
+  /api/tickets/listar:
     get:
       tags:
         - Tickets
@@ -93,6 +93,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/tickets/guardar:
     post:
       tags:
         - Tickets

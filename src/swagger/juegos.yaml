@@ -1,5 +1,5 @@
 paths:
-  /api/juegos:
+  /api/juegos/listar:
     get:
       tags:
         - Juegos
@@ -50,6 +50,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/juegos/guardar:
     post:
       tags:
         - Juegos
@@ -64,89 +65,93 @@ paths:
             schema:
               type: object
               required:
-                - nombre
-                - descripcion
-                - precio_ticket
+                - Nombre
+                - Descripcion
+                - PrecioTicket
               properties:
-                nombre:
+                Nombre:
                   type: string
                   example: Lotería Nacional
-                descripcion:
+                Descripcion:
                   type: string
                   example: Sorteo semanal de números del 1 al 100
-                precio_ticket:
+                PrecioTicket:
                   type: number
                   format: decimal
                   example: 50.00
-                max_numeros:
+                MaxNumeros:
                   type: integer
                   example: 6
-                rango_numeros:
+                RangoNumeros:
                   type: string
                   example: "1-100"
-                activo:
-                  type: boolean
-                  default: true
-                  example: true
+                Estado:
+                  type: string
+                  enum: [activo, inactivo]
+                  default: activo
+                  example: activo
       responses:
-        '201':
+        '200':
           description: Juego creado exitosamente
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  msj:
                     type: string
-                    example: Juego creado exitosamente
-                  juego:
-                    $ref: '#/components/schemas/Juego'
+                    example: Juego guardado exitosamente
+                  data:
+                    type: object
+                    properties:
+                      Id:
+                        type: integer
+                        example: 1
+                      Nombre:
+                        type: string
+                        example: Lotería Nacional
+                      Descripcion:
+                        type: string
+                        example: Sorteo semanal
+                      PrecioTicket:
+                        type: number
+                        example: 50.00
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/juegos/{id}:
-    get:
-      tags:
-        - Juegos
-      summary: Obtener juego por ID
-      description: Retorna la información de un juego específico
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del juego
-      responses:
-        '200':
-          description: Información del juego
+          description: Error en la validación de datos
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Juego'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Hay errores de validación
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al guardar juego
 
+  /api/juegos/editar:
     put:
       tags:
         - Juegos
       summary: Actualizar juego
-      description: Actualiza la información de un juego existente (solo administradores)
+      description: Actualiza la información de un juego existente
       security:
         - BearerAuth: []
       parameters:
-        - in: path
+        - in: query
           name: id
           required: true
           schema:
             type: integer
-          description: ID del juego
+          description: ID del juego a editar
       requestBody:
         required: true
         content:
@@ -154,25 +159,26 @@ paths:
             schema:
               type: object
               properties:
-                nombre:
+                Nombre:
                   type: string
                   example: Lotería Nacional Actualizada
-                descripcion:
+                Descripcion:
                   type: string
-                  example: Sorteo semanal con nuevas reglas
-                precio_ticket:
+                  example: Sorteo semanal actualizado
+                PrecioTicket:
                   type: number
                   format: decimal
                   example: 75.00
-                max_numeros:
+                MaxNumeros:
                   type: integer
                   example: 8
-                rango_numeros:
+                RangoNumeros:
                   type: string
-                  example: "1-150"
-                activo:
-                  type: boolean
-                  example: true
+                  example: "1-120"
+                Estado:
+                  type: string
+                  enum: [activo, inactivo]
+                  example: activo
       responses:
         '200':
           description: Juego actualizado exitosamente
@@ -181,34 +187,55 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  msj:
                     type: string
-                    example: Juego actualizado exitosamente
-                  juego:
-                    $ref: '#/components/schemas/Juego'
+                    example: Juego editado exitosamente
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Error en la validación de datos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Hay errores de validación
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Juego no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego no encontrado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al editar juego
 
+  /api/juegos/eliminar:
     delete:
       tags:
         - Juegos
       summary: Eliminar juego
-      description: Elimina un juego del sistema (solo administradores)
+      description: Elimina un juego del sistema
       security:
         - BearerAuth: []
       parameters:
-        - in: path
+        - in: query
           name: id
           required: true
           schema:
             type: integer
-          description: ID del juego
+          description: ID del juego a eliminar
       responses:
         '200':
           description: Juego eliminado exitosamente
@@ -217,84 +244,39 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
+                  msj:
                     type: string
                     example: Juego eliminado exitosamente
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/juegos/{id}/estadisticas:
-    get:
-      tags:
-        - Juegos
-      summary: Obtener estadísticas del juego
-      description: Retorna estadísticas detalladas de un juego específico
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del juego
-        - in: query
-          name: desde
-          schema:
-            type: string
-            format: date
-          description: Fecha de inicio para las estadísticas
-        - in: query
-          name: hasta
-          schema:
-            type: string
-            format: date
-          description: Fecha de fin para las estadísticas
-      responses:
-        '200':
-          description: Estadísticas del juego
+                  data:
+                    type: integer
+                    example: 1
+        '400':
+          description: Error en la validación de datos
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  juego_id:
-                    type: integer
-                    example: 1
-                  nombre_juego:
+                  msj:
                     type: string
-                    example: Lotería Nacional
-                  total_sorteos:
-                    type: integer
-                    example: 52
-                  total_tickets_vendidos:
-                    type: integer
-                    example: 15000
-                  ingresos_totales:
-                    type: number
-                    format: decimal
-                    example: 750000.00
-                  premios_entregados:
-                    type: number
-                    format: decimal
-                    example: 450000.00
-                  ganancia_neta:
-                    type: number
-                    format: decimal
-                    example: 300000.00
-                  numero_mas_elegido:
-                    type: string
-                    example: "15"
-                  numero_mas_ganador:
-                    type: string
-                    example: "23"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                    example: Hay errores de validación
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Juego no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego no encontrado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al eliminar juego

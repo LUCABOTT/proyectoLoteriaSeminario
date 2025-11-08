@@ -1,5 +1,5 @@
 paths:
-  /api/sorteos:
+  /api/sorteos/listar:
     get:
       tags:
         - Sorteos
@@ -68,6 +68,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/sorteos/guardar:
     post:
       tags:
         - Sorteos
