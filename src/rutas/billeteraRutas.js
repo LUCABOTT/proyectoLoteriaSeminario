@@ -19,4 +19,24 @@ rutas.post(
   controlador.acreditar
 );
 
+// PayPal
+rutas.post(
+  "/paypal/create-order",
+  [
+    body("usuarioId").notEmpty().withMessage("usuarioId es requerido"),
+    body("monto").notEmpty().isFloat({ gt: 0 }).withMessage("monto debe ser mayor que 0"),
+    body("currency").optional().isString(),
+  ],
+  controlador.paypalCrearOrden
+);
+
+rutas.post(
+  "/paypal/capture-order",
+  [
+    body("orderId").notEmpty().withMessage("orderId es requerido"),
+    body("usuarioId").optional(),
+  ],
+  controlador.paypalCapturarOrden
+);
+
 module.exports = rutas;
