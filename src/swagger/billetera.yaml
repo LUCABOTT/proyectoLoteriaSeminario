@@ -1,5 +1,5 @@
 paths:
-  /api/billetera/saldo/{usuarioId}:
+  /api/billetera/saldo/{id}:
     get:
       tags:
         - Billetera
@@ -7,7 +7,7 @@ paths:
       description: Consulta el saldo actual de la billetera de un usuario específico
       parameters:
         - in: path
-          name: usuarioId
+          name: id
           required: true
           schema:
             type: integer
@@ -64,10 +64,10 @@ paths:
             schema:
               type: object
               required:
-                - usuarioId
+                - id
                 - monto
               properties:
-                usuarioId:
+                id:
                   type: integer
                   example: 123
                   description: ID del usuario que recarga la billetera
@@ -79,15 +79,15 @@ paths:
                   description: Cantidad a recargar (debe ser mayor que 0)
       responses:
         "200":
-          description: Recarga realizada exitosamente
+          description: Saldo recargado exitosamente
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  ok:
-                    type: boolean
-                    example: true
+                  mensaje:
+                    type: string
+                    example: "Saldo acreditado correctamente"
                   billetera:
                     type: object
                     description: Información actualizada de la billetera
@@ -132,7 +132,7 @@ paths:
                         type: string
                         example: "usuarioId y monto son requeridos"
 
-  /api/billetera/paypal/create-order:
+  /api/billetera/paypal/crear:
     post:
       tags:
         - Billetera
@@ -144,9 +144,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [usuarioId, monto]
+              required: [id, monto]
               properties:
-                usuarioId:
+                id:
                   type: integer
                   example: 123
                 monto:
@@ -179,7 +179,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/billetera/paypal/capture-order:
+  /api/billetera/paypal/capturar:
     post:
       tags:
         - Billetera
@@ -191,12 +191,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [orderId]
+              required: [orden]
               properties:
-                orderId:
+                orden:
                   type: string
                   example: "5O190127TN364715T"
-                usuarioId:
+                usuario:
                   type: integer
                   example: 123
                   description: Opcional si se envió custom_id en create-order
@@ -223,18 +223,9 @@ paths:
                       saldo:
                         type: number
                         example: 125.50
-                  captura:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        example: "4C735502KX4921524"
-                      status:
-                        type: string
-                        example: "COMPLETED"
-                      amount:
-                        type: number
-                        example: 25.50
+                  mensaje:
+                    type: string
+                    example: "Recarga completada"
         "400":
           description: Error en captura
           content:
