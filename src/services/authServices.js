@@ -1,9 +1,25 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Usuarios = require('../modelos/modelosUsuarios/usuarios');
+const enviarCorreo = require('../configuracion/correo');
 
 const registrarUsuario = async (data) => {
-    const { useremail, userpswd, primerNombre, primerApellido } = data;
+    const {
+    primerNombre,
+    segundoNombre,
+    primerApellido,
+    segundoApellido,
+    identidad,
+    useremail,
+    userpswd,
+    userfching,
+    userest,
+    userpswdexp,
+    useractcod,
+    usertipo,
+    fechaNacimiento
+  } = data;
 
     // Verificar si ya existe el correo
     const exists = await Usuarios.findOne({ where: { useremail } });
@@ -12,13 +28,29 @@ const registrarUsuario = async (data) => {
     // Hashear contraseña
     const hashedPassword = await bcrypt.hash(userpswd, 10);
 
+    const fechaActual = new Date();
+    const fechaExpiracion = new Date(fechaActual);
+    fechaExpiracion.setMonth(fechaExpiracion.getMonth() + 3);
+    const pinActivacion = generarPIN();
+
     // Crear usuario
     const user = await Usuarios.create({
+        primerNombre,
+        segundoNombre,
+        primerApellido,
+        segundoApellido,
+        identidad,
         useremail,
         userpswd: hashedPassword,
-        primerNombre,
-        primerApellido
+        userfching: new Date(),
+        userest: 'IN',
+        userpswdexp: fechaExpiracion,
+        useractcod: pinActivacion,
+        usertipo: 'PBL',
+        fechaNacimiento: fechaNacimiento || null
     });
+
+     await enviarCorreo(useremail, 'Código de activación', `Tu código de activación es: ${pinActivacion}`);
 
     return user;
 };
@@ -26,6 +58,24 @@ const registrarUsuario = async (data) => {
 const loginUser = async (useremail, userpswd) => {
     const user = await Usuarios.findOne({ where: { useremail } });
     if (!user) throw new Error('Usuario Incorrecto');
+
+     // Verificar expiración de contraseña
+    const ahora = new Date();
+    if (user.userpswdexp && ahora > user.userpswdexp) {
+        // Expiró la contraseña
+        user.userest = 'IN'; // poner usuario inactivo
+        //user.useractcod = generarPIN(); // generar nuevo PIN
+        await user.save();
+
+        /*await enviarCorreo(user.useremail, 'Cuenta expirada',  este es apra enviar pin automatico a email del usuario pero ya no
+          `Tu cuenta ha expirado. Usa este PIN para reactivar: ${user.useractcod}`);*/
+
+        throw new Error('Cuenta expirada. Revisa tu correo para reactivarla.');
+    }
+
+    // Verificar que esté activo
+    if (user.userest !== 'AC') throw new Error('Usuario no activo');
+
 
     const valid = await bcrypt.compare(userpswd, user.userpswd);
     if (!valid) throw new Error('contraseña Incorrecta');
@@ -37,6 +87,12 @@ const loginUser = async (useremail, userpswd) => {
     );
 
     return token;
-};
+}; 
 
-module.exports = { registrarUsuario, loginUser };
+function generarPIN(length = 6) {
+  // Genera un PIN numérico de 6 dígitos
+  return crypto.randomInt(0, 10**length).toString().padStart(length, '0');
+}
+
+
+module.exports = { registrarUsuario, loginUser, generarPIN };
