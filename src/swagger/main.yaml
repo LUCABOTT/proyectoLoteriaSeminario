@@ -28,19 +28,19 @@ examples:
       2. Hacer login con POST /auth/login para obtener token
       3. Usar el token en el header Authorization: Bearer <token>
       4. Acceder a endpoints protegidos
-      5. Cerrar sesión con POST /auth/logout
+      5. (Opcional futuro) Cerrar sesión con POST /auth/logout
 
   ticket_purchase_workflow:
     summary: Flujo de compra de tickets
     description: |
       1. Autenticarse y obtener token
-      2. Consultar juegos disponibles con GET /api/juegos
-      3. Ver sorteos pendientes con GET /api/sorteos?estado=pendiente
-      4. Verificar saldo en billetera con GET /api/billetera
-      5. Depositar dinero si es necesario con POST /api/billetera/depositar
-      6. Generar números aleatorios (opcional) con GET /api/tickets/generar-numeros-aleatorios/{sorteo_id}
-      7. Comprar ticket con POST /api/tickets
-      8. Verificar compra con GET /api/tickets/mis-tickets
+      2. Consultar juegos disponibles con GET /api/juegos/listar
+      3. Ver sorteos abiertos con GET /api/sorteos/listar?Estado=abierto
+      4. Verificar saldo con GET /api/billetera/saldo/{usuarioId}
+      5. Recargar si es necesario con POST /api/billetera/recargar
+      6. (Opcional) Recargar vía PayPal: POST /api/billetera/paypal/create-order -> aprobar -> POST /api/billetera/paypal/capture-order
+      7. Comprar ticket con POST /api/tickets/guardar
+      8. Verificar compra con GET /api/tickets/listar
 
   admin_workflow:
     summary: Flujo de administración

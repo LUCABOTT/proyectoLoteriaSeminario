@@ -95,14 +95,14 @@ paths:
                       id:
                         type: integer
                         example: 1
-                      usuario_id:
+                      usuario:
                         type: integer
                         example: 123
                       saldo:
                         type: number
                         format: decimal
                         example: 600.00
-                      fecha_actualizacion:
+                      actualizada:
                         type: string
                         format: date-time
                         example: "2024-11-08T10:30:00Z"
@@ -131,3 +131,113 @@ paths:
                       error:
                         type: string
                         example: "usuarioId y monto son requeridos"
+
+  /api/billetera/paypal/create-order:
+    post:
+      tags:
+        - Billetera
+      summary: Crear orden PayPal para recarga
+      description: Crea una orden de PayPal (intent CAPTURE) para recargar saldo; devuelve el approveUrl.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [usuarioId, monto]
+              properties:
+                usuarioId:
+                  type: integer
+                  example: 123
+                monto:
+                  type: number
+                  example: 25.50
+                currency:
+                  type: string
+                  example: USD
+      responses:
+        "200":
+          description: Orden creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5O190127TN364715T"
+                  status:
+                    type: string
+                    example: "CREATED"
+                  approveUrl:
+                    type: string
+                    example: "https://www.sandbox.paypal.com/checkoutnow?token=5O190127TN364715T"
+        "400":
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/billetera/paypal/capture-order:
+    post:
+      tags:
+        - Billetera
+      summary: Capturar orden PayPal y acreditar saldo
+      description: Captura una orden aprobada y acredita el monto a la billetera del usuario.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+                  example: "5O190127TN364715T"
+                usuarioId:
+                  type: integer
+                  example: 123
+                  description: Opcional si se envió custom_id en create-order
+      responses:
+        "200":
+          description: Orden capturada y saldo acreditado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  billetera:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      usuario:
+                        type: integer
+                        example: 123
+                      saldo:
+                        type: number
+                        example: 125.50
+                  captura:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "4C735502KX4921524"
+                      status:
+                        type: string
+                        example: "COMPLETED"
+                      amount:
+                        type: number
+                        example: 25.50
+        "400":
+          description: Error en captura
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
