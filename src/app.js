@@ -2,6 +2,8 @@
 // 1) Variables de entorno primero
 // ----------------------------------------
 require("dotenv").config();
+const passport = require('passport');
+require('./configuracion/passport'); // importante
 
 // ----------------------------------------
 // 2) Imports base
@@ -44,6 +46,9 @@ const DetalleTicket = require("./modelos/detalleTicketModelo");
 // ----------------------------------------
 const authenticateToken = require("./middlewares/auth");
 const authRoutes = require("./rutas/auth");
+const checkRoleAccess = require('../src/middlewares/rolesAcces');
+
+
 
 // Rutas de usuarios (repo)
 const rutasUsuarios = require("./rutas/rutasUsuarios/rutaUsuarios");
@@ -144,10 +149,13 @@ if (swaggerUI && swaggerDoc) {
 }
 
 // Auth base
-app.use("/auth", authRoutes);
+app.use("/auth", require('./rutas/auth'));
+app.use(passport.initialize());
+
+app.use('/api/auth', authRoutes);
 
 // Rutas del repo (protegidas)
-app.use("/api/apiUsuarios", authenticateToken, rutasUsuarios);
+app.use("/api/apiUsuarios",authenticateToken, checkRoleAccess, rutasUsuarios);
 app.use("/api/apiImagenesUsuarios", authenticateToken, rutasImagenUsuario);
 app.use("/api/apiUsuariosTelefonos", authenticateToken, rutasTelefonosUsuarios);
 app.use("/api/apiRoles", authenticateToken, rutasRoles);
@@ -184,7 +192,7 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
     };
 
     // === ORDEN: primero padres del repo
-    await syncStep("Modelo Usuario", ModeloUsuario.sync({ alter: true }));
+    await syncStep("Modelo Usuario", ModeloUsuario.sync({ alter: false }));
     await syncStep("Modelo Roles", ModeloRoles.sync({ alter: true }));
     await syncStep("Modelo Funciones", ModeloFunciones.sync({ alter: true }));
 
