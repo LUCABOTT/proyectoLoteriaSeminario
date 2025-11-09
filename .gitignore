@@ -1,5 +1,19 @@
+# Dependencias
 node_modules/
+
+# Variables de entorno
 .env
+
+# Registros
+npm-debug.log
+*.log
+
+# Directorios de IDE y editores
 .vscode/
 .idea/
-/src/configuracion/db.js
+
+# Contenido subido por usuarios
+public/img/usuarios/
+
+# Archivos de construcción
+GEMINI.md
