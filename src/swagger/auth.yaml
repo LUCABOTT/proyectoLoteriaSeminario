@@ -1,5 +1,5 @@
 paths:
-  /auth/register:
+  /api/auth/register:
     post:
       tags:
         - Autenticación
@@ -72,7 +72,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /auth/login:
+  /api/auth/login:
     post:
       tags:
         - Autenticación
@@ -132,5 +132,120 @@ paths:
                 $ref: "#/components/schemas/Error"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
+  /api/auth/confirmarCuenta:
+    post:
+      tags:
+        - Autenticación
+      summary: Confirmar cuenta de usuario
+      description: Confirma la cuenta de un usuario a partir de un token de confirmación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        "200":
+          description: Cuenta confirmada exitosamente
+        "400":
+          description: Token inválido o expirado
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/auth/reactivarCuenta:
+    post:
+      tags:
+        - Autenticación
+      summary: Reactivar cuenta de usuario
+      description: Reactiva una cuenta de usuario que ha sido desactivada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@ejemplo.com"
+      responses:
+        "200":
+          description: Solicitud de reactivación enviada
+        "404":
+          description: Usuario no encontrado
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/auth/pinreactivacion:
+    post:
+      tags:
+        - Autenticación
+      summary: Generar PIN de reactivación
+      description: Genera y envía un PIN para la reactivación de la cuenta.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "usuario@ejemplo.com"
+      responses:
+        "200":
+          description: PIN de reactivación generado y enviado
+        "404":
+          description: Usuario no encontrado
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/auth/google:
+    get:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión con Google
+      description: Redirige a la página de autenticación de Google.
+      responses:
+        "302":
+          description: Redirección a Google
+  
+  /api/auth/google/callback:
+    get:
+      tags:
+        - Autenticación
+      summary: Callback de Google
+      description: Ruta de callback para la autenticación de Google. Devuelve un token JWT.
+      responses:
+        "200":
+          description: Inicio de sesión con Google exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Inicio de sesión con Google exitoso
+                  user:
+                    $ref: "#/components/schemas/Usuario"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         "500":
           $ref: "#/components/responses/InternalServerError"

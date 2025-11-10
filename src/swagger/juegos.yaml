@@ -66,8 +66,11 @@ paths:
               type: object
               required:
                 - Nombre
-                - Descripcion
-                - PrecioTicket
+                - PrecioJuego
+                - RangoMin
+                - RangoMax
+                - CantidadNumeros
+                - PermiteRepetidos
               properties:
                 Nombre:
                   type: string
@@ -75,21 +78,25 @@ paths:
                 Descripcion:
                   type: string
                   example: Sorteo semanal de números del 1 al 100
-                PrecioTicket:
+                PrecioJuego:
                   type: number
-                  format: decimal
+                  format: float
                   example: 50.00
-                MaxNumeros:
+                RangoMin:
+                  type: integer
+                  example: 1
+                RangoMax:
+                  type: integer
+                  example: 100
+                CantidadNumeros:
                   type: integer
                   example: 6
-                RangoNumeros:
+                PermiteRepetidos:
+                  type: boolean
+                  example: false
+                ReglasResumen:
                   type: string
-                  example: "1-100"
-                Estado:
-                  type: string
-                  enum: [activo, inactivo]
-                  default: activo
-                  example: activo
+                  example: "El jugador elige 6 números del 1 al 100."
       responses:
         '200':
           description: Juego creado exitosamente
@@ -102,20 +109,7 @@ paths:
                     type: string
                     example: Juego guardado exitosamente
                   data:
-                    type: object
-                    properties:
-                      Id:
-                        type: integer
-                        example: 1
-                      Nombre:
-                        type: string
-                        example: Lotería Nacional
-                      Descripcion:
-                        type: string
-                        example: Sorteo semanal
-                      PrecioTicket:
-                        type: number
-                        example: 50.00
+                    $ref: '#/components/schemas/Juego'
         '400':
           description: Error en la validación de datos
           content:
@@ -165,20 +159,25 @@ paths:
                 Descripcion:
                   type: string
                   example: Sorteo semanal actualizado
-                PrecioTicket:
+                PrecioJuego:
                   type: number
-                  format: decimal
+                  format: float
                   example: 75.00
-                MaxNumeros:
+                RangoMin:
+                  type: integer
+                  example: 1
+                RangoMax:
+                  type: integer
+                  example: 120
+                CantidadNumeros:
                   type: integer
                   example: 8
-                RangoNumeros:
+                PermiteRepetidos:
+                  type: boolean
+                  example: false
+                ReglasResumen:
                   type: string
-                  example: "1-120"
-                Estado:
-                  type: string
-                  enum: [activo, inactivo]
-                  example: activo
+                  example: "Reglas actualizadas."
       responses:
         '200':
           description: Juego actualizado exitosamente

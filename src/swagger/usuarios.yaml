@@ -82,21 +82,12 @@ paths:
                 - useremail
                 - userpswd
               properties:
-                primerNombre:
-                  type: string
-                  example: María
                 segundoNombre:
                   type: string
                   example: Elena
-                primerApellido:
-                  type: string
-                  example: González
                 segundoApellido:
                   type: string
                   example: Pérez
-                identidad:
-                  type: string
-                  example: 12345678901
                 useremail:
                   type: string
                   format: email
@@ -105,6 +96,10 @@ paths:
                   type: string
                   minLength: 6
                   example: password123
+                userest:
+                  type: string
+                  enum: [AC, IN, BL]
+                  example: AC
                 usertipo:
                   type: string
                   enum: [PBL, ADM, VND, AUD]
@@ -168,21 +163,12 @@ paths:
                 id:
                   type: integer
                   example: 1
-                primerNombre:
-                  type: string
-                  example: Juan Carlos
                 segundoNombre:
                   type: string
                   example: Eduardo
-                primerApellido:
-                  type: string
-                  example: Pérez
                 segundoApellido:
                   type: string
                   example: González
-                identidad:
-                  type: string
-                  example: 98765432101
                 useremail:
                   type: string
                   format: email
@@ -191,6 +177,10 @@ paths:
                   type: string
                   minLength: 6
                   example: newpassword123
+                userest:
+                  type: string
+                  enum: [AC, IN, BL]
+                  example: AC
                 usertipo:
                   type: string
                   enum: [PBL, ADM, VND, AUD]
@@ -306,7 +296,7 @@ paths:
                     type: string
                     example: Error al eliminar usuario
 
-  /api/apiImagenesUsuarios/{userId}/upload:
+  /api/apiImagenesUsuarios/imagen:
     post:
       tags:
         - Usuarios
@@ -315,8 +305,8 @@ paths:
       security:
         - BearerAuth: []
       parameters:
-        - in: path
-          name: userId
+        - in: query
+          name: usuarioId
           required: true
           schema:
             type: integer
@@ -366,7 +356,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/apiUsuariosTelefonos:
+  /api/apiUsuariosTelefonos/listar:
     get:
       tags:
         - Usuarios
@@ -402,6 +392,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/apiUsuariosTelefonos/guardar:
     post:
       tags:
         - Usuarios
@@ -416,20 +407,15 @@ paths:
             schema:
               type: object
               required:
-                - usuario_id
-                - telefono
-                - tipo
+                - idUsuario
+                - numero
               properties:
-                usuario_id:
+                idUsuario:
                   type: integer
                   example: 1
-                telefono:
-                  type: string
-                  example: "+598 99 123 456"
-                tipo:
-                  type: string
-                  enum: [movil, fijo, trabajo]
-                  example: movil
+                numero:
+                  type: integer
+                  example: 99123456
       responses:
         '201':
           description: Teléfono agregado exitosamente

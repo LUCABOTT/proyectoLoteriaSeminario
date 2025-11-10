@@ -157,7 +157,6 @@ if (swaggerUI && swaggerDoc) {
 }
 
 // Auth base
-app.use("/auth", require('./rutas/auth'));
 app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);

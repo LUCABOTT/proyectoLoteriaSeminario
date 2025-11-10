@@ -22,7 +22,7 @@ paths:
           name: estado
           schema:
             type: string
-            enum: [activo, cancelado, ganador]
+            enum: [pendiente, pagado, cancelado, reembolsado, anulado]
           description: Filtrar por estado del ticket
         - in: query
           name: page
@@ -108,23 +108,28 @@ paths:
             schema:
               type: object
               required:
-                - sorteo_id
-                - numeros_elegidos
+                - IdUsuario
+                - IdSorteo
+                - Total
               properties:
-                sorteo_id:
+                IdUsuario:
                   type: integer
                   example: 1
-                numeros_elegidos:
+                IdSorteo:
+                  type: integer
+                  example: 1
+                FechaCompra:
                   type: string
-                  example: "15,23,42,8,91,33"
-                  description: Números elegidos separados por comas
-                cantidad:
-                  type: integer
-                  minimum: 1
-                  maximum: 10
-                  default: 1
-                  example: 1
-                  description: Cantidad de tickets con los mismos números
+                  format: date-time
+                  example: "2024-11-08T10:30:00Z"
+                Estado:
+                  type: string
+                  enum: [pendiente, pagado, cancelado, reembolsado, anulado]
+                  example: "pendiente"
+                Total:
+                  type: number
+                  format: float
+                  example: 50.00
       responses:
         "201":
           description: Ticket(s) comprado(s) exitosamente
@@ -164,122 +169,6 @@ paths:
                 $ref: "#/components/schemas/Error"
         "404":
           description: Sorteo no encontrado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /api/tickets/{id}:
-    get:
-      tags:
-        - Tickets
-      summary: Obtener ticket por ID
-      description: Retorna la información detallada de un ticket específico
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del ticket
-      responses:
-        "200":
-          description: Información del ticket
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/Ticket"
-                  - type: object
-                    properties:
-                      sorteo:
-                        $ref: "#/components/schemas/Sorteo"
-                      usuario:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                            example: 1
-                          nombre:
-                            type: string
-                            example: Juan
-                          apellido:
-                            type: string
-                            example: Pérez
-                          email:
-                            type: string
-                            example: juan@ejemplo.com
-                      numeros_acertados:
-                        type: integer
-                        example: 3
-                        description: Cantidad de números acertados (si el sorteo ya se realizó)
-                      premio_ganado:
-                        type: number
-                        format: decimal
-                        example: 1000.00
-                        description: Premio ganado (si aplica)
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "403":
-          description: No autorizado para ver este ticket
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-    delete:
-      tags:
-        - Tickets
-      summary: Cancelar ticket
-      description: Cancela un ticket antes del sorteo (reembolso automático)
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del ticket
-      responses:
-        "200":
-          description: Ticket cancelado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Ticket cancelado exitosamente
-                  reembolso:
-                    type: number
-                    format: decimal
-                    example: 50.00
-                  saldo_actual:
-                    type: number
-                    format: decimal
-                    example: 500.00
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "400":
-          description: No se puede cancelar el ticket (sorteo ya realizado)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "403":
-          description: No autorizado para cancelar este ticket
           content:
             application/json:
               schema:

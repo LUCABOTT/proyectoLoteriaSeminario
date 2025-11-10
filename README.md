@@ -1,18 +1,31 @@
-# proyectoLoteriaSeminario
+# Proyecto Lotería Seminario
 
-## Recargas con PayPal (simple)
+## Descripción
 
-Variables de entorno requeridas:
-- PAYPAL_CLIENT_ID
-- PAYPAL_CLIENT_SECRET
-- PAYPAL_ENV=sandbox | live
-- PAYPAL_RETURN_URL (opcional)
-- PAYPAL_CANCEL_URL (opcional)
+Este es un sistema de lotería desarrollado en Node.js y Express que permite a los usuarios participar en sorteos, gestionar su billetera virtual con integración de PayPal.
 
-Endpoints protegidos bajo /api/billetera:
-- POST /api/billetera/paypal/create-order { usuarioId, monto, currency? } -> devuelve { id, approveUrl }
-- POST /api/billetera/paypal/capture-order { orderId, usuarioId? } -> acredita el monto en la billetera
+## Variables de entorno
 
-Flujo básico:
-1) Crear orden -> redirigir al approveUrl de PayPal.
-2) Tras aprobar, capturar con orderId -> la API acredita el monto a la billetera del usuario.
+```
+# Puerto de la aplicación
+PORT=3004
+
+# Base de datos
+USUARIO=
+CONTRASENA=
+DB=
+
+# PayPal
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_ENV=sandbox
+PAYPAL_RETURN_URL=http://localhost:3004/api/billetera/paypal/capturar
+
+# JSON Web Token
+JWT_SECRET=
+JWT_EXPIRATION=
+
+# Correo electrónico
+USUARIO_CORREO=
+CONTRASENA_CORREO=
+```

@@ -15,7 +15,7 @@ paths:
           name: estado
           schema:
             type: string
-            enum: [pendiente, realizado, cancelado]
+            enum: [programado, abierto, cerrado, sorteado, anulado]
           description: Filtrar por estado del sorteo
         - in: query
           name: fecha_desde
@@ -83,23 +83,25 @@ paths:
             schema:
               type: object
               required:
-                - juego_id
-                - fecha_sorteo
+                - IdJuego
+                - Cierre
               properties:
-                juego_id:
+                IdJuego:
                   type: integer
                   example: 1
-                fecha_sorteo:
+                Cierre:
                   type: string
                   format: date-time
                   example: "2024-12-15T20:00:00Z"
-                descripcion:
+                Estado:
                   type: string
-                  example: Sorteo semanal de Lotería Nacional
-                premio_principal:
-                  type: number
-                  format: decimal
-                  example: 1000000.00
+                  enum: [programado, abierto, cerrado, sorteado, anulado]
+                  example: "programado"
+                NumerosGanadores:
+                  type: array
+                  items:
+                    type: integer
+                  example: [10, 20, 30]
       responses:
         "201":
           description: Sorteo creado exitosamente
