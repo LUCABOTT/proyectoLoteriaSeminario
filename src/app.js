@@ -162,6 +162,8 @@ app.use(passport.initialize());
 app.use('/api/auth', authRoutes);
 
 // Rutas del repo (protegidas)
+// Perfil de usuario (solo autenticación, sin checkRoleAccess)
+app.get("/api/apiUsuarios/perfil", authenticateToken, require("./controladores/controladorUsuario/controladorUsuarios").obtenerPerfil);
 app.use("/api/apiUsuarios",authenticateToken, checkRoleAccess, rutasUsuarios);
 app.use("/api/apiImagenesUsuarios", authenticateToken, rutasImagenUsuario);
 app.use("/api/apiUsuariosTelefonos", authenticateToken, rutasTelefonosUsuarios);
