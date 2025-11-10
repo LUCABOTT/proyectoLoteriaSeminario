@@ -13,13 +13,12 @@ const morgan = require("morgan");
 const path = require("path");
 const db = require("./configuracion/db");
 
-// Swagger (opcional, protegido)
 let swaggerUI, swaggerDoc;
 try {
   swaggerUI = require("swagger-ui-express");
-  swaggerDoc = require("./configuracion/swagger");
+  swaggerDoc = require("./configuracion/swagger.js");
 } catch {
-  /* sin swagger */
+  console.warn("Swagger UI no está disponible");
 }
 
 // ----------------------------------------
@@ -40,6 +39,9 @@ const Juego = require("./modelos/juegoModelo");
 const Sorteo = require("./modelos/sorteoModelo");
 const Ticket = require("./modelos/ticketsModelo");
 const DetalleTicket = require("./modelos/detalleTicketModelo");
+// Modelos de Billetera
+const Billetera = require("./modelos/billetera.modelo");
+const Transaccion = require("./modelos/transaccion.modelo");
 
 // ----------------------------------------
 // 5) Middlewares y rutas existentes del repo
@@ -129,6 +131,12 @@ function setupAssociations() {
   // ===== Lotería: Ticket 1—N DetalleTicket
   DetalleTicket.belongsTo(Ticket, { foreignKey: "IdTicket" });
   Ticket.hasMany(DetalleTicket, { foreignKey: "IdTicket" });
+
+  // ===== Billetera: Usuario 1—1 Billetera y Billetera 1—N Transaccion
+  ModeloUsuario.hasOne(Billetera, { foreignKey: "usuario", as: "billetera" });
+  Billetera.belongsTo(ModeloUsuario, { foreignKey: "usuario", as: "usuarioRef" });
+  Billetera.hasMany(Transaccion, { foreignKey: "billetera", as: "transacciones" });
+  Transaccion.belongsTo(Billetera, { foreignKey: "billetera", as: "billeteraRef" });
 }
 
 // ----------------------------------------
@@ -145,16 +153,17 @@ app.use(express.json());
 // Swagger UI si está disponible
 if (swaggerUI && swaggerDoc) {
   app.use("/api/docs", swaggerUI.serve, swaggerUI.setup(swaggerDoc));
-  console.log("Swagger UI montado en /api/docs");
+  console.log(`Swagger disponible en http://localhost:${PORT}/api/docs`);
 }
 
 // Auth base
-app.use("/auth", require('./rutas/auth'));
 app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);
 
 // Rutas del repo (protegidas)
+// Perfil de usuario (solo autenticación, sin checkRoleAccess)
+app.get("/api/apiUsuarios/perfil", authenticateToken, require("./controladores/controladorUsuario/controladorUsuarios").obtenerPerfil);
 app.use("/api/apiUsuarios",authenticateToken, checkRoleAccess, rutasUsuarios);
 app.use("/api/apiImagenesUsuarios", authenticateToken, rutasImagenUsuario);
 app.use("/api/apiUsuariosTelefonos", authenticateToken, rutasTelefonosUsuarios);
@@ -197,12 +206,28 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
     await syncStep("Modelo Funciones", ModeloFunciones.sync({ alter: true }));
 
     // Luego hijas directas
-    await syncStep("Modelo TelefonosUsuarios", ModeloTelefonosUsuarios.sync({ alter: true }));
-    await syncStep("Modelo ImagenesUsuarios", ModeloImagenUsuario.sync({ alter: true }));
+    await syncStep(
+      "Modelo TelefonosUsuarios",
+      ModeloTelefonosUsuarios.sync({ alter: true }),
+    );
+    await syncStep(
+      "Modelo ImagenesUsuarios",
+      ModeloImagenUsuario.sync({ alter: true }),
+    );
 
     // Luego tablas puente del repo
-    await syncStep("Modelo RolesUsuarios", ModeloRolesUsuarios.sync({ alter: true }));
-    await syncStep("Modelo FuncionesRoles", ModeloFuncionesRoles.sync({ alter: true }));
+    await syncStep(
+      "Modelo RolesUsuarios",
+      ModeloRolesUsuarios.sync({ alter: true }),
+    );
+    await syncStep(
+      "Modelo FuncionesRoles",
+      ModeloFuncionesRoles.sync({ alter: true }),
+    );
+
+    // Sincronización Billetera
+    await syncStep("Modelo Billetera", Billetera.sync({ alter: true }));
+    await syncStep("Modelo Transaccion", Transaccion.sync({ alter: true }));
 
     // === Lotería: primero padres, luego hijas
     await syncStep("Modelo Juego", Juego.sync({ alter: true }));

@@ -143,3 +143,24 @@ exports.eliminar = async (req, res) => {
   }
 };
 
+// 🔹 Obtener perfil del usuario autenticado
+exports.obtenerPerfil = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const usuario = await Usuarios.findByPk(userId, {
+      attributes: { exclude: ['userpswd', 'useractcod'] }
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ msj: "Usuario no encontrado" });
+    }
+
+    res.json(usuario);
+
+  } catch (error) {
+    console.error("Error al obtener perfil:", error);
+    res.status(500).json({ msj: "Error al obtener perfil", error: error.message });
+  }
+};
+

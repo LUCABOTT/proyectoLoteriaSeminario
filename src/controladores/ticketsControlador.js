@@ -1,7 +1,7 @@
 const { validationResult } = require("express-validator");
 const Tickets = require("../modelos/ticketsModelo");
 const db = require("../configuracion/db");
-const billeteraService = require("../services/billeteraService");
+const billeteraService = require("../services/billetera.servicio");
 
 const controlador = {};
 

@@ -1,0 +1,283 @@
+paths:
+  /api/tickets/listar:
+    get:
+      tags:
+        - Tickets
+      summary: Obtener tickets
+      description: Retorna los tickets del usuario autenticado o todos los tickets (administradores)
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: usuario_id
+          schema:
+            type: integer
+          description: ID del usuario (solo administradores)
+        - in: query
+          name: sorteo_id
+          schema:
+            type: integer
+          description: Filtrar por ID de sorteo
+        - in: query
+          name: estado
+          schema:
+            type: string
+            enum: [pendiente, pagado, cancelado, reembolsado, anulado]
+          description: Filtrar por estado del ticket
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Número de página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Cantidad de resultados por página
+      responses:
+        "200":
+          description: Lista de tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/Ticket"
+                        - type: object
+                          properties:
+                            sorteo:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                fecha_sorteo:
+                                  type: string
+                                  format: date-time
+                                  example: "2024-12-15T20:00:00Z"
+                                estado:
+                                  type: string
+                                  example: pendiente
+                            usuario:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                nombre:
+                                  type: string
+                                  example: Juan
+                                apellido:
+                                  type: string
+                                  example: Pérez
+                  total:
+                    type: integer
+                    example: 25
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 3
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/tickets/guardar:
+    post:
+      tags:
+        - Tickets
+      summary: Comprar ticket
+      description: Compra un nuevo ticket para un sorteo específico
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - IdUsuario
+                - IdSorteo
+                - Total
+              properties:
+                IdUsuario:
+                  type: integer
+                  example: 1
+                IdSorteo:
+                  type: integer
+                  example: 1
+                FechaCompra:
+                  type: string
+                  format: date-time
+                  example: "2024-11-08T10:30:00Z"
+                Estado:
+                  type: string
+                  enum: [pendiente, pagado, cancelado, reembolsado, anulado]
+                  example: "pendiente"
+                Total:
+                  type: number
+                  format: float
+                  example: 50.00
+      responses:
+        "201":
+          description: Ticket(s) comprado(s) exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Ticket comprado exitosamente
+                  tickets:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Ticket"
+                  total_pagado:
+                    type: number
+                    format: decimal
+                    example: 50.00
+                  saldo_restante:
+                    type: number
+                    format: decimal
+                    example: 450.00
+        "400":
+          description: Error en la compra (sorteo cerrado, números inválidos, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "402":
+          description: Saldo insuficiente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Sorteo no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/tickets/editar:
+    put:
+      tags:
+        - Tickets
+      summary: Editar ticket
+      description: Modifica los datos de un ticket existente
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                IdUsuario:
+                  type: integer
+                  description: ID del usuario (opcional)
+                IdSorteo:
+                  type: integer
+                  description: ID del sorteo (opcional)
+                FechaCompra:
+                  type: string
+                  format: date-time
+                  description: Fecha de compra (opcional)
+                Estado:
+                  type: string
+                  enum: [pendiente, pagado, cancelado, reembolsado, anulado]
+                  description: Estado del ticket (opcional)
+                Total:
+                  type: number
+                  format: decimal
+                  minimum: 0
+                  description: Total del ticket (opcional)
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del ticket a editar
+      responses:
+        "200":
+          description: Ticket editado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ticket editado exitosamente"
+                  ticket:
+                    $ref: "#/components/schemas/Ticket"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Ticket no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/tickets/eliminar:
+    delete:
+      tags:
+        - Tickets
+      summary: Eliminar ticket
+      description: Elimina un ticket del sistema
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del ticket a eliminar
+      responses:
+        "200":
+          description: Ticket eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Ticket eliminado exitosamente"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Ticket no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

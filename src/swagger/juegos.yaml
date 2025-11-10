@@ -1,0 +1,281 @@
+paths:
+  /api/juegos/listar:
+    get:
+      tags:
+        - Juegos
+      summary: Obtener todos los juegos
+      description: Retorna la lista de todos los juegos de lotería disponibles
+      parameters:
+        - in: query
+          name: activo
+          schema:
+            type: boolean
+          description: Filtrar por estado activo/inactivo
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Número de página
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Cantidad de resultados por página
+      responses:
+        '200':
+          description: Lista de juegos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  juegos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Juego'
+                  total:
+                    type: integer
+                    example: 25
+                  page:
+                    type: integer
+                    example: 1
+                  totalPages:
+                    type: integer
+                    example: 3
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/juegos/guardar:
+    post:
+      tags:
+        - Juegos
+      summary: Crear un nuevo juego
+      description: Crea un nuevo juego de lotería (solo administradores)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - Nombre
+                - PrecioJuego
+                - RangoMin
+                - RangoMax
+                - CantidadNumeros
+                - PermiteRepetidos
+              properties:
+                Nombre:
+                  type: string
+                  example: Lotería Nacional
+                Descripcion:
+                  type: string
+                  example: Sorteo semanal de números del 1 al 100
+                PrecioJuego:
+                  type: number
+                  format: float
+                  example: 50.00
+                RangoMin:
+                  type: integer
+                  example: 1
+                RangoMax:
+                  type: integer
+                  example: 100
+                CantidadNumeros:
+                  type: integer
+                  example: 6
+                PermiteRepetidos:
+                  type: boolean
+                  example: false
+                ReglasResumen:
+                  type: string
+                  example: "El jugador elige 6 números del 1 al 100."
+      responses:
+        '200':
+          description: Juego creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego guardado exitosamente
+                  data:
+                    $ref: '#/components/schemas/Juego'
+        '400':
+          description: Error en la validación de datos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Hay errores de validación
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al guardar juego
+
+  /api/juegos/editar:
+    put:
+      tags:
+        - Juegos
+      summary: Actualizar juego
+      description: Actualiza la información de un juego existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del juego a editar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Nombre:
+                  type: string
+                  example: Lotería Nacional Actualizada
+                Descripcion:
+                  type: string
+                  example: Sorteo semanal actualizado
+                PrecioJuego:
+                  type: number
+                  format: float
+                  example: 75.00
+                RangoMin:
+                  type: integer
+                  example: 1
+                RangoMax:
+                  type: integer
+                  example: 120
+                CantidadNumeros:
+                  type: integer
+                  example: 8
+                PermiteRepetidos:
+                  type: boolean
+                  example: false
+                ReglasResumen:
+                  type: string
+                  example: "Reglas actualizadas."
+      responses:
+        '200':
+          description: Juego actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego editado exitosamente
+        '400':
+          description: Error en la validación de datos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Hay errores de validación
+        '404':
+          description: Juego no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego no encontrado
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al editar juego
+
+  /api/juegos/eliminar:
+    delete:
+      tags:
+        - Juegos
+      summary: Eliminar juego
+      description: Elimina un juego del sistema
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID del juego a eliminar
+      responses:
+        '200':
+          description: Juego eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego eliminado exitosamente
+                  data:
+                    type: integer
+                    example: 1
+        '400':
+          description: Error en la validación de datos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Hay errores de validación
+        '404':
+          description: Juego no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Juego no encontrado
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al eliminar juego

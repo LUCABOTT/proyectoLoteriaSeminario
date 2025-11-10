@@ -1,22 +1,40 @@
 const { Router } = require("express");
-const { body } = require("express-validator");
-const controlador = require("../controladores/billeteraControlador");
+const { body, param } = require("express-validator");
+const controlador = require("../controladores/billetera.controlador");
 
 const rutas = Router();
 
-rutas.get("/saldo/:usuarioId", controlador.obtenerSaldo);
+rutas.get("/saldo/:id", controlador.obtenerSaldo);
 
 rutas.post(
   "/recargar",
   [
-    body("usuarioId").notEmpty().withMessage("usuarioId es requerido"),
+    body("id").notEmpty().withMessage("id es requerido"),
     body("monto")
       .notEmpty()
-      .withMessage("monto es requerido")
       .isFloat({ gt: 0 })
       .withMessage("monto debe ser mayor que 0"),
   ],
-  controlador.acreditar
+  controlador.recargar,
+);
+rutas.post(
+  "/paypal/crear",
+  [
+    body("id").notEmpty().withMessage("id es requerido"),
+    body("monto")
+      .notEmpty()
+      .isFloat({ gt: 0 })
+      .withMessage("monto debe ser mayor que 0"),
+  ],
+  controlador.paypalCrearOrden,
+);
+rutas.post(
+  "/paypal/capturar",
+  [
+    body("orden").notEmpty().withMessage("orden es requerido"),
+    body("usuario").notEmpty().withMessage("usuario es requerido"),
+  ],
+  controlador.paypalCapturarOrden,
 );
 
 module.exports = rutas;
