@@ -15,11 +15,16 @@ USUARIO=
 CONTRASENA=
 DB=
 
+# Google OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
 # PayPal
 PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=
 PAYPAL_ENV=sandbox
 PAYPAL_RETURN_URL=http://localhost:3004/api/billetera/paypal/capturar
+PAYPAL_CANCEL_URL=http://localhost:3004/api/billetera/paypal/cancelar
 
 # JSON Web Token
 JWT_SECRET=

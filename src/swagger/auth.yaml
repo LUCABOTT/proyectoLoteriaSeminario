@@ -134,13 +134,13 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  
+
   /api/auth/confirmarCuenta:
     post:
       tags:
         - Autenticación
       summary: Confirmar cuenta de usuario
-      description: Confirma la cuenta de un usuario a partir de un token de confirmación.
+      description: Confirma la cuenta de un usuario a partir de un email y PIN de confirmación.
       requestBody:
         required: true
         content:
@@ -148,16 +148,23 @@ paths:
             schema:
               type: object
               required:
-                - token
+                - email
+                - pin
               properties:
-                token:
+                email:
                   type: string
-                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  format: email
+                  example: "usuario@ejemplo.com"
+                pin:
+                  type: string
+                  example: "123456"
       responses:
         "200":
           description: Cuenta confirmada exitosamente
         "400":
-          description: Token inválido o expirado
+          description: Email o PIN inválido
+        "404":
+          description: Usuario no encontrado
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -224,7 +231,7 @@ paths:
       responses:
         "302":
           description: Redirección a Google
-  
+
   /api/auth/google/callback:
     get:
       tags:
