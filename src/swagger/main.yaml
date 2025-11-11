@@ -16,6 +16,8 @@ tags:
     description: Administración de sorteos y resultados
   - name: Tickets
     description: Compra y gestión de tickets de lotería
+  - name: Detalle Tickets
+    description: Gestión de números específicos en los tickets
   - name: Billetera
     description: Sistema de billetera virtual y transacciones
 
@@ -40,7 +42,19 @@ examples:
       5. Recargar si es necesario con POST /api/billetera/recargar
       6. (Opcional) Recargar vía PayPal: POST /api/billetera/paypal/create-order -> aprobar -> POST /api/billetera/paypal/capture-order
       7. Comprar ticket con POST /api/tickets/guardar
-      8. Verificar compra con GET /api/tickets/listar
+      8. Agregar números específicos con POST /api/detalle-tickets/guardar
+      9. Verificar compra con GET /api/tickets/listar
+      10. Ver detalles de números con GET /api/detalle-tickets/listar?ticket={ticketId}
+
+  detalle_tickets_management:
+    summary: Gestión de números en tickets
+    description: |
+      1. Crear ticket base con POST /api/tickets/guardar
+      2. Agregar números específicos: POST /api/detalle-tickets/guardar
+      3. Ver todos los números de un ticket: GET /api/detalle-tickets/listar?ticket={id}
+      4. Modificar un número (solo si sorteo abierto): PUT /api/detalle-tickets/editar?id={detalleId}
+      5. Eliminar un número: DELETE /api/detalle-tickets/eliminar?id={detalleId}
+      Nota: Solo se pueden modificar detalles si el sorteo está en estado 'abierto'
 
   admin_workflow:
     summary: Flujo de administración
