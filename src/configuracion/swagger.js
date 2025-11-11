@@ -184,6 +184,34 @@ const options = {
             },
           },
         },
+        ValidationError: {
+          type: "object",
+          properties: {
+            error: {
+              type: "string",
+              description: "Mensaje principal de error",
+            },
+            details: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  field: {
+                    type: "string",
+                    description: "Campo que causó el error",
+                  },
+                  message: {
+                    type: "string",
+                    description: "Descripción específica del error",
+                  },
+                  value: {
+                    description: "Valor que causó el error",
+                  },
+                },
+              },
+            },
+          },
+        },
         Success: {
           type: "object",
           properties: {
