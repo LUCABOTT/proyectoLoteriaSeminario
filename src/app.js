@@ -150,24 +150,24 @@ app.get(
   require("./controladores/controladorUsuario/controladorUsuarios").obtenerPerfil,
 );
 app.use("/api/apiUsuarios", authenticateToken, checkRoleAccess, rutasUsuarios);
-app.use("/api/apiImagenesUsuarios", authenticateToken, rutasImagenUsuario);
-app.use("/api/apiUsuariosTelefonos", authenticateToken, rutasTelefonosUsuarios);
-app.use("/api/apiRoles", authenticateToken, rutasRoles);
-app.use("/api/apiRolesUsuarios", authenticateToken, rutasRolesUsuarios);
-app.use("/api/apiFunciones", authenticateToken, rutasFunciones);
-app.use("/api/apiFuncionesRoles", authenticateToken, rutasFuncionesRoles);
+app.use("/api/apiImagenesUsuarios", authenticateToken, checkRoleAccess, rutasImagenUsuario);
+app.use("/api/apiUsuariosTelefonos", authenticateToken, checkRoleAccess, rutasTelefonosUsuarios);
+app.use("/api/apiRoles", authenticateToken, checkRoleAccess, rutasRoles);
+app.use("/api/apiRolesUsuarios", authenticateToken, checkRoleAccess, rutasRolesUsuarios);
+app.use("/api/apiFunciones", authenticateToken, checkRoleAccess, rutasFunciones);
+app.use("/api/apiFuncionesRoles", authenticateToken, checkRoleAccess, rutasFuncionesRoles);
 
 // Archivos estáticos
 app.use("/api/imagenes", express.static(path.join(__dirname, "../public/img")));
 
 // Rutas de Lotería (pon autenticación si corresponde)
-app.use("/api/juegos", /*authenticateToken,*/ juegoRutas);
-app.use("/api/sorteos", /*authenticateToken,*/ sorteoRutas);
-app.use("/api/tickets", /*authenticateToken,*/ ticketsRutas);
-app.use("/api/detalle-tickets", /*authenticateToken,*/ detalleTicketRutas);
+app.use("/api/juegos",authenticateToken, checkRoleAccess, juegoRutas);
+app.use("/api/sorteos", authenticateToken, checkRoleAccess, sorteoRutas);
+app.use("/api/tickets", authenticateToken, checkRoleAccess, ticketsRutas);
+app.use("/api/detalle-tickets", authenticateToken, checkRoleAccess, detalleTicketRutas);
 
 // Rutas de billetera (requieren autenticación)
-app.use("/api/billetera", authenticateToken, rutasBilletera);
+app.use("/api/billetera", authenticateToken,checkRoleAccess, rutasBilletera);
 
 (async () => {
   try {

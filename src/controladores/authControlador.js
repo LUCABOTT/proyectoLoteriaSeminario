@@ -1,5 +1,6 @@
 const authService = require('../services/authServices');
 const Usuarios = require('../modelos/modelosUsuarios/usuarios');
+const RolesUsuarios = require('../modelos/modelosUsuarios/roles_usuarios');
 const enviarCorreo = require('../configuracion/correo');
 const { generarPIN } = require('../services/authServices');
 
@@ -32,7 +33,7 @@ const confirmarUsuario = async (req, res) => {
   try {
     const { email, pin } = req.body;
 
-    const usuario = await usuarios.findOne({ where: { useremail: email } });
+    const usuario = await Usuarios.findOne({ where: { useremail: email } });
 
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
 
@@ -41,6 +42,11 @@ const confirmarUsuario = async (req, res) => {
     usuario.userest = 'AC';
     usuario.useractcod = null;
     await usuario.save();
+
+    await RolesUsuarios.update(
+      { roleuserest: 'AC' },
+      { where: { usercod: usuario.id, rolescod: 'PBL' } }
+    );
 
     res.json({ message: 'Usuario activado correctamente' });
   } catch (error) {
