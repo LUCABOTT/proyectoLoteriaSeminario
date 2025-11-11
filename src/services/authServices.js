@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const Usuarios = require('../modelos/modelosUsuarios/usuarios');
+const Roles = require('../modelos/modelosUsuarios/roles');
+const RolesUsuarios = require('../modelos/modelosUsuarios/roles_usuarios');
 const enviarCorreo = require('../configuracion/correo');
 
 const registrarUsuario = async (data) => {
@@ -49,6 +51,25 @@ const registrarUsuario = async (data) => {
         usertipo: 'PBL',
         fechaNacimiento: fechaNacimiento || null
     });
+
+    const rolPublico = await Roles.findOne({ where: { rolescod: 'PBL' } });
+
+  if (!rolPublico) {
+    throw new Error('No existe el rol PBL en la tabla de roles');
+  }
+
+  const fechaRol = new Date();
+const expiracionRol = new Date(fechaRol);
+expiracionRol.setMonth(expiracionRol.getMonth() + 3);
+
+await RolesUsuarios.create({
+  usercod: user.id,
+  rolescod: rolPublico.rolescod,
+  roleuserest: 'IN',        
+  roleuserfch: fechaRol,     
+  roleuserexp: expiracionRol
+});
+
 
      await enviarCorreo(useremail, 'Código de activación', `Tu código de activación es: ${pinActivacion}`);
 
