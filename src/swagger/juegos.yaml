@@ -4,51 +4,32 @@ paths:
       tags:
         - Juegos
       summary: Obtener todos los juegos
-      description: Retorna la lista de todos los juegos de lotería disponibles
-      parameters:
-        - in: query
-          name: activo
-          schema:
-            type: boolean
-          description: Filtrar por estado activo/inactivo
-        - in: query
-          name: page
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-          description: Número de página
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-          description: Cantidad de resultados por página
+      description: Retorna la lista de todos los juegos disponibles
       responses:
         '200':
-          description: Lista de juegos
+          description: Lista de juegos obtenida correctamente
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  juegos:
+                  msj:
+                    type: string
+                    example: Lista de juegos
+                  data:
                     type: array
                     items:
                       $ref: '#/components/schemas/Juego'
-                  total:
-                    type: integer
-                    example: 25
-                  page:
-                    type: integer
-                    example: 1
-                  totalPages:
-                    type: integer
-                    example: 3
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msj:
+                    type: string
+                    example: Error al listar los juegos
 
   /api/juegos/guardar:
     post:
@@ -74,13 +55,18 @@ paths:
               properties:
                 Nombre:
                   type: string
+                  minLength: 3
+                  maxLength: 100
                   example: Lotería Nacional
                 Descripcion:
                   type: string
+                  maxLength: 255
                   example: Sorteo semanal de números del 1 al 100
                 PrecioJuego:
                   type: number
                   format: float
+                  minimum: 1
+                  maximum: 1000
                   example: 50.00
                 RangoMin:
                   type: integer
@@ -90,12 +76,14 @@ paths:
                   example: 100
                 CantidadNumeros:
                   type: integer
+                  minimum: 1
                   example: 6
                 PermiteRepetidos:
                   type: boolean
                   example: false
                 ReglasResumen:
                   type: string
+                  maxLength: 255
                   example: "El jugador elige 6 números del 1 al 100."
       responses:
         '200':
@@ -111,7 +99,7 @@ paths:
                   data:
                     $ref: '#/components/schemas/Juego'
         '400':
-          description: Error en la validación de datos
+          description: Error de validación en los datos enviados
           content:
             application/json:
               schema:
@@ -129,13 +117,13 @@ paths:
                 properties:
                   msj:
                     type: string
-                    example: Error al guardar juego
+                    example: Error al guardar el juego
 
   /api/juegos/editar:
     put:
       tags:
         - Juegos
-      summary: Actualizar juego
+      summary: Editar un juego existente
       description: Actualiza la información de un juego existente
       security:
         - BearerAuth: []
@@ -145,7 +133,7 @@ paths:
           required: true
           schema:
             type: integer
-          description: ID del juego a editar
+          description: ID del juego que se desea editar
       requestBody:
         required: true
         content:
@@ -155,13 +143,18 @@ paths:
               properties:
                 Nombre:
                   type: string
+                  minLength: 3
+                  maxLength: 100
                   example: Lotería Nacional Actualizada
                 Descripcion:
                   type: string
+                  maxLength: 255
                   example: Sorteo semanal actualizado
                 PrecioJuego:
                   type: number
                   format: float
+                  minimum: 1
+                  maximum: 1000
                   example: 75.00
                 RangoMin:
                   type: integer
@@ -171,16 +164,18 @@ paths:
                   example: 120
                 CantidadNumeros:
                   type: integer
+                  minimum: 1
                   example: 8
                 PermiteRepetidos:
                   type: boolean
                   example: false
                 ReglasResumen:
                   type: string
+                  maxLength: 255
                   example: "Reglas actualizadas."
       responses:
         '200':
-          description: Juego actualizado exitosamente
+          description: Juego editado exitosamente
           content:
             application/json:
               schema:
@@ -189,8 +184,10 @@ paths:
                   msj:
                     type: string
                     example: Juego editado exitosamente
+                  data:
+                    $ref: '#/components/schemas/Juego'
         '400':
-          description: Error en la validación de datos
+          description: Error en la validación o datos incorrectos
           content:
             application/json:
               schema:
@@ -200,7 +197,7 @@ paths:
                     type: string
                     example: Hay errores de validación
         '404':
-          description: Juego no encontrado
+          description: El ID del juego no existe
           content:
             application/json:
               schema:
@@ -208,7 +205,7 @@ paths:
                 properties:
                   msj:
                     type: string
-                    example: Juego no encontrado
+                    example: El id del juego no existe
         '500':
           description: Error interno del servidor
           content:
@@ -224,8 +221,8 @@ paths:
     delete:
       tags:
         - Juegos
-      summary: Eliminar juego
-      description: Elimina un juego del sistema
+      summary: Eliminar un juego existente
+      description: Elimina un juego del sistema usando su ID
       security:
         - BearerAuth: []
       parameters:
@@ -234,10 +231,10 @@ paths:
           required: true
           schema:
             type: integer
-          description: ID del juego a eliminar
+          description: ID del juego que se desea eliminar
       responses:
         '200':
-          description: Juego eliminado exitosamente
+          description: Juego eliminado correctamente
           content:
             application/json:
               schema:
@@ -250,7 +247,7 @@ paths:
                     type: integer
                     example: 1
         '400':
-          description: Error en la validación de datos
+          description: Error en la validación o ID no válido
           content:
             application/json:
               schema:
@@ -260,7 +257,7 @@ paths:
                     type: string
                     example: Hay errores de validación
         '404':
-          description: Juego no encontrado
+          description: El ID del juego no existe
           content:
             application/json:
               schema:
@@ -268,7 +265,7 @@ paths:
                 properties:
                   msj:
                     type: string
-                    example: Juego no encontrado
+                    example: El id del juego no existe
         '500':
           description: Error interno del servidor
           content:
