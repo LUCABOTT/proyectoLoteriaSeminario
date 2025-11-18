@@ -6,7 +6,8 @@ const Juego = require('../modelos/juegoModelo');
 
 const rutas = Router();
 
-const ESTADOS = ['programado','abierto','cerrado','sorteado','anulado'];
+// ✅ Actualizar ESTADOS (eliminar 'programado')
+const ESTADOS = ['abierto','cerrado','sorteado','anulado'];
 
 rutas.get('/listar', controlador.Listar);
 
@@ -35,15 +36,13 @@ rutas.post('/guardar',
 
 rutas.put(
   '/editar',
-  // id en query + existencia
   query('id').isInt().withMessage('El id debe ser un entero'),
   query('id').custom(async (value) => {
-    const buscar = await Sorteo.findByPk(value);
+    const buscar = await Modelo.findByPk(value); // ✅ Cambiar Sorteo por Modelo
     if (!buscar) throw new Error('El id del sorteo no existe');
     return true;
   }),
 
-  // IdJuego (opcional) - si viene, debe existir
   body('IdJuego')
     .optional()
     .isInt().withMessage('IdJuego debe ser un entero')
@@ -53,35 +52,30 @@ rutas.put(
       return true;
     }),
 
-  // Cierre (opcional) - fecha válida ISO
   body('Cierre')
     .optional()
     .isISO8601().withMessage('Cierre debe ser una fecha válida'),
 
-  // Estado (opcional) - uno de los permitidos
+  // ✅ Actualizar estados permitidos
   body('Estado')
     .optional()
-    .isIn(['programado', 'abierto', 'cerrado', 'sorteado', 'anulado'])
-    .withMessage("Estado inválido: use 'programado','abierto','cerrado','sorteado','anulado'"),
+    .isIn(['abierto', 'cerrado', 'sorteado', 'anulado'])
+    .withMessage("Estado inválido: use 'abierto','cerrado','sorteado','anulado'"),
 
-  // NumerosGanadores (opcional) - array de enteros 0..99, sin repetidos; tamaño depende del juego
   body('NumerosGanadores')
     .optional()
     .isArray().withMessage('NumerosGanadores debe ser un arreglo')
     .custom(async (value, { req }) => {
-      // Traer el sorteo actual y su juego (o el IdJuego que venga en body)
-      const sorteo = await Sorteo.findByPk(req.query.id);
+      const sorteo = await Modelo.findByPk(req.query.id); // ✅ Cambiar Sorteo por Modelo
       const juegoId = req.body.IdJuego ?? sorteo.IdJuego;
       const juego = await Juego.findByPk(juegoId);
       if (!juego) throw new Error('No se pudo determinar el juego del sorteo');
 
-      // Cantidad que debe tener el arreglo según el juego
-      const required = (juego.CantidadNumeros === 4) ? 3 : 5; // Pega3=3 ganadores, Superpremio=5
+      const required = (juego.CantidadNumeros === 4) ? 3 : 5;
       if (value.length !== required) {
         throw new Error(`NumerosGanadores debe tener exactamente ${required} números`);
       }
 
-      // Validar 0..99 y sin repetidos
       const set = new Set();
       for (const n of value) {
         if (!Number.isInteger(n) || n < 0 || n > 99) {
@@ -93,21 +87,20 @@ rutas.put(
       return true;
     }),
 
-  // Reglas de transición de estado (opcional, lógica mínima)
+  // ✅ Actualizar reglas de transición (eliminar 'programado')
   body().custom(async (_, { req }) => {
-    const sorteo = await Sorteo.findByPk(req.query.id);
+    const sorteo = await Modelo.findByPk(req.query.id); // ✅ Cambiar Sorteo por Modelo
     const estadoActual = sorteo.Estado;
     const estadoNuevo = req.body.Estado;
 
     if (estadoNuevo) {
-      // No permitir regresar desde 'sorteado' a 'abierto'
-      const mapaOrden = { programado: 1, abierto: 2, cerrado: 3, sorteado: 4, anulado: 5 };
+      // ✅ Actualizar mapa de orden (sin 'programado')
+      const mapaOrden = { abierto: 1, cerrado: 2, sorteado: 3, anulado: 4 };
       if (mapaOrden[estadoNuevo] < mapaOrden[estadoActual]) {
         throw new Error(`Transición de estado inválida: ${estadoActual} -> ${estadoNuevo}`);
       }
     }
 
-    // Si envían NumerosGanadores y el sorteo sigue abierto, permitir solo si también piden 'cerrado' o 'sorteado'
     if (req.body.NumerosGanadores && !['cerrado', 'sorteado'].includes(estadoActual) && !req.body.Estado) {
       throw new Error('Para registrar NumerosGanadores, el sorteo debe estar cerrado o debes indicar Estado="sorteado"');
     }
