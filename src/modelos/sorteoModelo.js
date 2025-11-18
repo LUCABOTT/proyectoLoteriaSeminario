@@ -6,9 +6,9 @@ const Sorteo = db.define('Sorteo', {
   IdJuego: { type: DataTypes.BIGINT, allowNull: false },
   Cierre: { type: DataTypes.DATE, allowNull: false },
   Estado: {
-    type: DataTypes.ENUM('programado','abierto','cerrado','sorteado','anulado'),
+    type: DataTypes.ENUM('abierto','cerrado','sorteado','anulado'),
     allowNull: false,
-    defaultValue: 'programado'
+    defaultValue: 'abierto'
   },
   NumerosGanadores: { type: DataTypes.JSON, allowNull: true }
 }, { tableName: 'Sorteo', timestamps: false });

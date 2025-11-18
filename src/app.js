@@ -161,8 +161,8 @@ app.use("/api/apiFuncionesRoles", authenticateToken, checkRoleAccess, rutasFunci
 app.use("/api/imagenes", express.static(path.join(__dirname, "../public/img")));
 
 // Rutas de Lotería (pon autenticación si corresponde)
-app.use("/api/juegos",authenticateToken, checkRoleAccess, juegoRutas);
-app.use("/api/sorteos", authenticateToken, checkRoleAccess, sorteoRutas);
+app.use("/api/juegos", authenticateToken, checkRoleAccess,juegoRutas);
+app.use("/api/sorteos",authenticateToken, checkRoleAccess, sorteoRutas);
 app.use("/api/tickets", authenticateToken, checkRoleAccess, ticketsRutas);
 app.use("/api/detalle-tickets", authenticateToken, checkRoleAccess, detalleTicketRutas);
 
