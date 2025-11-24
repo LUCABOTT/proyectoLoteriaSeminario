@@ -26,6 +26,8 @@ PAYPAL_ENV=sandbox
 PAYPAL_RETURN_URL=http://localhost:3004/api/billetera/paypal/capturar
 PAYPAL_CANCEL_URL=http://localhost:3004/api/billetera/paypal/cancelar
 
+HNL_USD_RATE=26.50
+
 # JSON Web Token
 JWT_SECRET=
 JWT_EXPIRATION=

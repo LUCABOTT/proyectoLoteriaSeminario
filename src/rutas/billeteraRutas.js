@@ -14,6 +14,10 @@ rutas.post(
       .notEmpty()
       .isFloat({ gt: 0 })
       .withMessage("monto debe ser mayor que 0"),
+    body("moneda")
+      .optional()
+      .isIn(["HNL", "USD"])
+      .withMessage("moneda debe ser 'HNL' o 'USD'"),
   ],
   controlador.recargar,
 );

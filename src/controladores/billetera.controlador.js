@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 const billeteraServicio = require("../services/billetera.servicio");
 const paypal = require("../services/paypal.servicio");
+const conversor = require("../services/conversor.servicio");
 
 const controlador = {};
 
@@ -20,10 +21,23 @@ controlador.recargar = async (request, response) => {
   if (!errores.isEmpty()) return response.status(400).json(errores.array());
 
   try {
-    const { id, monto } = request.body;
+    const { id, monto, moneda } = request.body;
+
+    if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+      return response
+        .status(400)
+        .json({ error: "El monto debe ser un número válido mayor que 0" });
+    }
+
+    let montoEnHnl = parseFloat(monto);
+    // Si la moneda es USD, convertir a HNL antes de acreditar
+    if (moneda && String(moneda).toUpperCase() === "USD") {
+      montoEnHnl = conversor.usdToHnl(montoEnHnl);
+    }
+
     const billetera = await billeteraServicio.acreditar(
       id,
-      parseFloat(monto),
+      montoEnHnl,
       "Recarga",
     );
 
@@ -46,9 +60,14 @@ controlador.paypalCrearOrden = async (request, response) => {
         .json({ error: "El monto debe ser un número válido mayor que 0" });
     }
 
+    // Convertir Lempiras (HNL) a USD antes de crear la orden en PayPal
+    const montoHnl = parseFloat(monto);
+    const montoUsd = conversor.hnlToUsd(montoHnl);
+
     const orden = await paypal.crearOrden({
-      monto: parseFloat(monto),
+      monto: montoUsd,
       usuario: id,
+      descripcion: `Recarga de billetera (${montoHnl} HNL ≈ ${montoUsd} USD)`,
     });
     const aprobacion = (orden.links || []).find((l) => l.rel === "approve");
     response.json({
@@ -87,9 +106,12 @@ controlador.paypalCapturarOrden = async (request, response) => {
         .json({ error: "No se pudo determinar el usuarioId" });
     if (!monto || monto <= 0)
       return response.status(400).json({ error: "Monto capturado inválido" });
+
+    // PayPal devuelve el monto en USD; convertir a HNL antes de acreditar en la billetera
+    const montoEnHnl = conversor.usdToHnl(monto);
     const billetera = await billeteraServicio.acreditar(
       usuarioId,
-      monto,
+      montoEnHnl,
       "Recarga",
     );
     response.json({ mensaje: "Recarga completada", billetera });
