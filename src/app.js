@@ -76,6 +76,7 @@ function setupAssociations() {
     foreignKey: "usercod",
     otherKey: "rolescod",
   });
+  
 
   ModeloRoles.belongsToMany(ModeloUsuario, {
     through: ModeloRolesUsuarios,
@@ -202,7 +203,7 @@ app.use("/api/billetera", authenticateToken,checkRoleAccess, rutasBilletera);
 
     // === Lotería: primero padres, luego hijas
     await syncStep("Modelo Juego", Juego.sync({ alter: true }));
-    await syncStep("Modelo Sorteo", Sorteo.sync({ alter: true }));
+    await syncStep("Modelo Sorteo", Sorteo.sync({ alter: false }));
     await syncStep("Modelo Ticket", Ticket.sync({ alter: true }));
     await syncStep("Modelo DetalleTicket", DetalleTicket.sync({ alter: true }));
 
