@@ -94,6 +94,10 @@ const loginUser = async (useremail, userpswd) => {
         throw new Error('Cuenta expirada. Revisa tu correo para reactivarla.');
     }
 
+    if (user.userest === 'BL') {
+    throw new Error('La cuenta está bloqueada. Contacte al administrador.');
+}
+
     // Verificar que esté activo
     if (user.userest !== 'AC') throw new Error('Usuario no activo');
 
