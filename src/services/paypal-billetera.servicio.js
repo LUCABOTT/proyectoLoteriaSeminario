@@ -10,18 +10,12 @@ const ESTADO_ORDEN = {
   COMPLETADA: "COMPLETED",
 };
 
-/**
- * Busca el enlace de aprobación en los links de la orden de PayPal
- */
 const obtenerUrlAprobacion = (enlaces) => {
   if (!Array.isArray(enlaces)) return null;
   const enlaceAprobacion = enlaces.find((enlace) => enlace.rel === "approve");
   return enlaceAprobacion?.href || null;
 };
 
-/**
- * Crea una orden de pago en PayPal para recargar la billetera
- */
 const crearOrdenRecarga = async (usuarioId, montoHNL) => {
   const montoUSD = conversorServicio.hnlToUsd(montoHNL);
 
@@ -40,9 +34,6 @@ const crearOrdenRecarga = async (usuarioId, montoHNL) => {
   };
 };
 
-/**
- * Extrae la información de captura de una orden de PayPal
- */
 const extraerDatosCaptura = (resultado) => {
   const unidadCompra = resultado.purchase_units?.[0] || {};
   const usuarioPersonalizado = unidadCompra.custom_id;
@@ -55,9 +46,6 @@ const extraerDatosCaptura = (resultado) => {
   };
 };
 
-/**
- * Captura y procesa una orden de pago de PayPal, acreditando el saldo a la billetera
- */
 const capturarOrdenYAcreditar = async (ordenId, usuarioId) => {
   const resultado = await paypalServicio.capturarOrden(ordenId);
 

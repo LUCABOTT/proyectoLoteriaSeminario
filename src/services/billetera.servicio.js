@@ -23,7 +23,10 @@ const acreditar = async (usuario, monto, tipo = "Recarga", opciones = {}) => {
     billetera.saldo = parseFloat(billetera.saldo || 0) + parseFloat(monto);
     await billetera.save({ transaction: opciones.transaction });
     if (!opciones.skipTransaccion) {
-      await Transaccion.create({ billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) }, { transaction: opciones.transaction });
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: opciones.transaction },
+      );
     }
     return billetera;
   }
@@ -33,7 +36,10 @@ const acreditar = async (usuario, monto, tipo = "Recarga", opciones = {}) => {
     billetera.saldo = parseFloat(billetera.saldo || 0) + parseFloat(monto);
     await billetera.save({ transaction: transaccion });
     if (!opciones.skipTransaccion) {
-      await Transaccion.create({ billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) }, { transaction: transaccion });
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: transaccion },
+      );
     }
     return billetera;
   });
@@ -49,7 +55,10 @@ const debitar = async (usuario, monto, tipo = "Pago", opciones = {}) => {
     billetera.saldo = saldoActual - parseFloat(monto);
     await billetera.save({ transaction: opciones.transaction });
     if (!opciones.skipTransaccion) {
-      await Transaccion.create({ billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) }, { transaction: opciones.transaction });
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: opciones.transaction },
+      );
     }
     return billetera;
   }
@@ -61,7 +70,10 @@ const debitar = async (usuario, monto, tipo = "Pago", opciones = {}) => {
     billetera.saldo = saldoActual - parseFloat(monto);
     await billetera.save({ transaction: transaccion });
     if (!opciones.skipTransaccion) {
-      await Transaccion.create({ billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) }, { transaction: transaccion });
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: transaccion },
+      );
     }
     return billetera;
   });
