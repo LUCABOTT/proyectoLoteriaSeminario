@@ -168,7 +168,7 @@ app.use("/api/tickets", authenticateToken, checkRoleAccess, ticketsRutas);
 app.use("/api/detalle-tickets", authenticateToken, checkRoleAccess, detalleTicketRutas);
 
 // Rutas de billetera (requieren autenticación)
-app.use("/api/billetera", authenticateToken,checkRoleAccess, rutasBilletera);
+app.use("/api/billetera", authenticateToken, rutasBilletera);
 
 (async () => {
   try {

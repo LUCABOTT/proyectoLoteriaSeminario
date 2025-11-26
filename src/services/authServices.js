@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const Usuarios = require('../modelos/modelosUsuarios/usuarios');
 const Roles = require('../modelos/modelosUsuarios/roles');
 const RolesUsuarios = require('../modelos/modelosUsuarios/roles_usuarios');
+const Billetera = require('../modelos/billetera.modelo');
 const enviarCorreo = require('../configuracion/correo');
 
 const registrarUsuario = async (data) => {
@@ -70,6 +71,11 @@ await RolesUsuarios.create({
   roleuserexp: expiracionRol
 });
 
+await Billetera.create({
+  usuario: user.id,
+  saldo: 0,
+  estado: 'Activa'
+});
 
      await enviarCorreo(useremail, 'Código de activación', `Tu código de activación es: ${pinActivacion}`);
 
