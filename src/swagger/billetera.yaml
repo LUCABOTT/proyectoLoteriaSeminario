@@ -49,8 +49,8 @@ paths:
       summary: Recargar billetera del usuario autenticado
       description: |
         Agrega dinero a la billetera del usuario autenticado para comprar tickets de lotería.
-        Requiere: monto (debe ser mayor que 0).
-        Opcional: moneda (HNL o USD, default HNL). Si se envía USD, el servidor convertirá usando HNL_USD_RATE.
+        Las recargas manuales siempre se realizan en Lempiras (HNL).
+        Requiere: monto (debe ser mayor que 0, en Lempiras).
       security:
         - BearerAuth: []
       requestBody:
@@ -59,7 +59,6 @@ paths:
           application/json:
             example:
               monto: 100.00
-              moneda: "HNL"
       responses:
         "200":
           description: Saldo recargado exitosamente
