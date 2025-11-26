@@ -10,40 +10,10 @@ paths:
       responses:
         "200":
           description: Saldo obtenido exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  usuario:
-                    type: integer
-                    example: 123
-                    description: ID del usuario autenticado
-                  saldo:
-                    type: number
-                    format: decimal
-                    example: 500.00
-                    description: Saldo actual en la billetera
         "401":
           description: Usuario no autenticado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Usuario no autenticado"
         "500":
           description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Error interno del servidor"
 
   /api/billetera/historial:
     get:
@@ -54,183 +24,51 @@ paths:
         Retorna el historial completo de transacciones del usuario autenticado.
         Incluye todas las operaciones: recargas, compras de tickets, pagos y reembolsos.
         Soporta paginación para manejar grandes cantidades de registros.
+        Parámetros: limite (default 50, max 100), pagina (default 1).
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: limite
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 50
-          description: Número de transacciones por página
+          description: Número de transacciones por página (1-100, default 50)
         - in: query
           name: pagina
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
           description: Número de página (comienza en 1)
       responses:
         "200":
           description: Historial obtenido exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  usuario:
-                    type: integer
-                    example: 123
-                    description: ID del usuario autenticado
-                  transacciones:
-                    type: array
-                    description: Lista de transacciones
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        monto:
-                          type: number
-                          format: decimal
-                          example: 50.00
-                        tipo:
-                          type: string
-                          enum: [Recarga, Pago, Reembolso, Compra de ticket]
-                          example: "Compra de ticket"
-                        ticket:
-                          type: integer
-                          nullable: true
-                          example: 42
-                          description: ID del ticket relacionado (si aplica)
-                        creada:
-                          type: string
-                          format: date-time
-                          example: "2024-11-26T10:30:00Z"
-                          description: Fecha de creación de la transacción
-                  total:
-                    type: integer
-                    example: 25
-                    description: Total de transacciones del usuario
-                  pagina:
-                    type: integer
-                    example: 1
-                    description: Página actual
-                  totalPaginas:
-                    type: integer
-                    example: 3
-                    description: Total de páginas disponibles
         "401":
           description: Usuario no autenticado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Usuario no autenticado"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          description: Error interno del servidor
 
   /api/billetera/recargar:
     post:
       tags:
         - Billetera
       summary: Recargar billetera del usuario autenticado
-      description: Agrega dinero a la billetera del usuario autenticado para comprar tickets de lotería
+      description: |
+        Agrega dinero a la billetera del usuario autenticado para comprar tickets de lotería.
+        Requiere: monto (debe ser mayor que 0).
+        Opcional: moneda (HNL o USD, default HNL). Si se envía USD, el servidor convertirá usando HNL_USD_RATE.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - monto
-              properties:
-                monto:
-                  type: number
-                  format: decimal
-                  minimum: 0.01
-                  example: 100.00
-                  description: Cantidad a recargar (debe ser mayor que 0)
-                moneda:
-                  type: string
-                  enum: [HNL, USD]
-                  example: HNL
-                  description: |
-                    Moneda del monto enviado. Si se omite se asume `HNL`.
-                    Si se envía `USD`, el servidor convertirá el valor a HNL
-                    usando la variable de entorno `HNL_USD_RATE` antes de acreditar.
+            example:
+              monto: 100.00
+              moneda: "HNL"
       responses:
         "200":
           description: Saldo recargado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  mensaje:
-                    type: string
-                    example: "Saldo acreditado correctamente"
-                  billetera:
-                    type: object
-                    description: Información actualizada de la billetera
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
-                      usuario:
-                        type: integer
-                        example: 123
-                      saldo:
-                        type: number
-                        format: decimal
-                        example: 600.00
-                      actualizada:
-                        type: string
-                        format: date-time
-                        example: "2024-11-08T10:30:00Z"
         "400":
           description: Error en validación de datos
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - type: array
-                    description: Errores de validación
-                    items:
-                      type: object
-                      properties:
-                        msg:
-                          type: string
-                          example: "monto debe ser mayor que 0"
-                        param:
-                          type: string
-                          example: "monto"
-                        location:
-                          type: string
-                          example: "body"
-                  - type: object
-                    properties:
-                      error:
-                        type: string
-                        example: "El monto debe ser un número válido mayor que 0"
         "401":
           description: Usuario no autenticado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Usuario no autenticado"
+        "500":
+          description: Error interno del servidor
 
   /api/billetera/paypal/crear:
     post:
@@ -238,59 +76,26 @@ paths:
         - Billetera
       summary: Crear orden PayPal para recarga del usuario autenticado
       description: |
-        Crea una orden de PayPal (intent CAPTURE) para recargar saldo del usuario autenticado; devuelve el approveUrl.
-        El endpoint recibe el `monto` en Lempiras (HNL) y el servidor lo convierte
-        a USD (redondeado a 2 decimales) antes de llamar a la API de PayPal, ya
-        que PayPal sólo acepta pagos en USD en este flujo.
+        Crea una orden de PayPal (intent CAPTURE) para recargar saldo del usuario autenticado.
+        El endpoint recibe el monto en Lempiras (HNL) y el servidor lo convierte a USD antes de llamar a la API de PayPal.
+        Requiere: monto (en HNL).
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [monto]
-              properties:
-                monto:
-                  type: number
-                  example: 100.00
-                  description: |
-                    Monto en Lempiras (HNL). El servidor convertirá este valor a USD
-                    usando `HNL_USD_RATE` antes de crear la orden en PayPal.
+            example:
+              monto: 100.00
       responses:
         "200":
-          description: Orden creada
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  idOrden:
-                    type: string
-                    example: "5O190127TN364715T"
-                  estado:
-                    type: string
-                    example: "CREATED"
-                  urlAprobacion:
-                    type: string
-                    example: "https://www.sandbox.paypal.com/checkoutnow?token=5O190127TN364715T"
+          description: Orden creada - Retorna idOrden, estado y urlAprobacion
         "400":
           description: Error de validación
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         "401":
           description: Usuario no autenticado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Usuario no autenticado"
+        "500":
+          description: Error interno del servidor
 
   /api/billetera/paypal/capturar:
     post:
@@ -299,60 +104,22 @@ paths:
       summary: Capturar orden PayPal y acreditar saldo al usuario autenticado
       description: |
         Captura una orden aprobada y acredita el monto a la billetera del usuario autenticado.
-        PayPal devuelve el monto en USD; el servidor convertirá ese monto a HNL
-        usando `HNL_USD_RATE` antes de acreditar la billetera.
+        PayPal devuelve el monto en USD; el servidor convertirá ese monto a HNL usando HNL_USD_RATE.
+        Requiere: orden (ID de la orden de PayPal).
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required: [orden]
-              properties:
-                orden:
-                  type: string
-                  example: "5O190127TN364715T"
-                  description: ID de la orden de PayPal a capturar
+            example:
+              orden: "5O190127TN364715T"
       responses:
         "200":
           description: Orden capturada y saldo acreditado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  mensaje:
-                    type: string
-                    example: "Recarga completada"
-                  billetera:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
-                      usuario:
-                        type: integer
-                        example: 123
-                      saldo:
-                        type: number
-                        example: 125.50
         "400":
           description: Error en captura
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         "401":
           description: Usuario no autenticado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Usuario no autenticado"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          description: Error interno del servidor

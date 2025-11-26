@@ -10,64 +10,12 @@ paths:
       responses:
         '200':
           description: Información del usuario
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    example: 1
-                  primerNombre:
-                    type: string
-                    example: Juan
-                  segundoNombre:
-                    type: string
-                    example: Carlos
-                  primerApellido:
-                    type: string
-                    example: Pérez
-                  segundoApellido:
-                    type: string
-                    example: González
-                  useremail:
-                    type: string
-                    example: juan.perez@ejemplo.com
-                  usertipo:
-                    type: string
-                    example: PBL
-                  userest:
-                    type: string
-                    example: AC
-                  fechaNacimiento:
-                    type: string
-                    format: date
-                    example: 1985-05-20
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '404':
           description: Usuario no encontrado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Usuario no encontrado
         '500':
           description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Error al obtener perfil
-                  error:
-                    type: string
-                    example: Error message details
 
   /api/apiUsuarios/listar:
     get:
@@ -80,441 +28,198 @@ paths:
       responses:
         '200':
           description: Lista de usuarios
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    primerNombre:
-                      type: string
-                      example: Juan
-                    segundoNombre:
-                      type: string
-                      example: Carlos
-                    primerApellido:
-                      type: string
-                      example: Pérez
-                    segundoApellido:
-                      type: string
-                      example: González
-                    useremail:
-                      type: string
-                      example: juan.perez@ejemplo.com
-                    usertipo:
-                      type: string
-                      example: PBL
-                    userest:
-                      type: string
-                      example: AC
         '401':
           description: No autorizado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Token inválido
         '500':
           description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Error al listar usuarios
 
   /api/apiUsuarios/guardar:
     post:
       tags:
         - Usuarios
       summary: Crear un nuevo usuario
-      description: Crea un nuevo usuario en el sistema (solo administradores)
+      description: |
+        Crea un nuevo usuario en el sistema (solo administradores).
+        Requiere: segundoNombre, segundoApellido, useremail, userpswd.
+        Opcional: userest, usertipo, fechaNacimiento.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - segundoNombre
-                - segundoApellido
-                - useremail
-                - userpswd
-              properties:
-                segundoNombre:
-                  type: string
-                  example: Elena
-                segundoApellido:
-                  type: string
-                  example: Pérez
-                useremail:
-                  type: string
-                  format: email
-                  example: nuevo@ejemplo.com
-                userpswd:
-                  type: string
-                  minLength: 6
-                  example: password123
-                userest:
-                  type: string
-                  enum: [AC, IN, BL]
-                  example: AC
-                usertipo:
-                  type: string
-                  enum: [PBL, ADM, VND, AUD]
-                  default: PBL
-                  example: PBL
-                fechaNacimiento:
-                  type: string
-                  format: date
-                  example: 1985-05-20
+            example:
+              segundoNombre: "Elena"
+              segundoApellido: "Pérez"
+              useremail: "nuevo@ejemplo.com"
+              userpswd: "password123"
+              userest: "AC"
+              usertipo: "PBL"
+              fechaNacimiento: "1990-05-20"
       responses:
         '201':
           description: Usuario creado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Usuario creado exitosamente
-                  usuario:
-                    $ref: '#/components/schemas/Usuario'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Solicitud incorrecta
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '409':
           description: Email ya registrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '500':
           description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Error al crear usuario
 
   /api/apiUsuarios/editar:
     put:
       tags:
         - Usuarios
       summary: Actualizar usuario
-      description: Actualiza la información de un usuario existente
+      description: |
+        Actualiza la información de un usuario existente.
+        Requiere: id.
+        Opcional: segundoNombre, segundoApellido, useremail, userpswd, userest, usertipo, fechaNacimiento.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - id
-              properties:
-                id:
-                  type: integer
-                  example: 1
-                segundoNombre:
-                  type: string
-                  example: Eduardo
-                segundoApellido:
-                  type: string
-                  example: González
-                useremail:
-                  type: string
-                  format: email
-                  example: usuario_actualizado@ejemplo.com
-                userpswd:
-                  type: string
-                  minLength: 6
-                  example: newpassword123
-                userest:
-                  type: string
-                  enum: [AC, IN, BL]
-                  example: AC
-                usertipo:
-                  type: string
-                  enum: [PBL, ADM, VND, AUD]
-                  example: PBL
-                fechaNacimiento:
-                  type: string
-                  format: date
-                  example: 1990-01-15
+            example:
+              id: 1
+              segundoNombre: "Eduardo"
+              useremail: "usuario_actualizado@ejemplo.com"
       responses:
         '200':
           description: Usuario actualizado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Usuario actualizado correctamente
         '400':
           description: Error en la validación de datos
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Hay errores de validación
+        '401':
+          description: No autorizado
         '404':
           description: Usuario no encontrado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Usuario no encontrado o sin cambios
         '500':
           description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Error al editar usuario
 
   /api/apiUsuarios/eliminar:
     delete:
       tags:
         - Usuarios
-      summary: Eliminar usuario
-      description: Elimina un usuario del sistema (solo administradores)
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - id
-              properties:
-                id:
-                  type: integer
-                  example: 1
-      responses:
-        '200':
-          description: Usuario eliminado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Usuario eliminado correctamente
-                  data:
-                    type: integer
-                    example: 1
-        '400':
-          description: Error en la validación de datos
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Hay errores de validación
-        '404':
-          description: Usuario no encontrado
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Usuario no encontrado
-        '500':
-          description: Error interno del servidor
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Error al eliminar usuario
-
-  /api/apiImagenesUsuarios/imagen:
-    post:
-      tags:
-        - Usuarios
-      summary: Subir imagen de perfil
-      description: Sube una imagen de perfil para un usuario
+      summary: Eliminar un usuario
+      description: |
+        Elimina un usuario del sistema.
+        Parámetro de consulta: id (requerido).
       security:
         - BearerAuth: []
       parameters:
         - in: query
-          name: usuarioId
+          name: id
           required: true
-          schema:
-            type: integer
-          description: ID del usuario
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                imagen:
-                  type: string
-                  format: binary
-                  description: Archivo de imagen (JPG, PNG, GIF)
+          description: ID del usuario a eliminar
       responses:
         '200':
-          description: Imagen subida exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Imagen subida exitosamente
-                  imagen:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
-                      usuario_id:
-                        type: integer
-                        example: 1
-                      nombre_archivo:
-                        type: string
-                        example: perfil_123456.jpg
-                      ruta:
-                        type: string
-                        example: /api/imagenes/usuarios/perfil_123456.jpg
+          description: Usuario eliminado exitosamente
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Error de validación
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Usuario no encontrado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
-  /api/apiUsuariosTelefonos/listar:
+  /api/apiTelefonosUsuarios:
     get:
       tags:
         - Usuarios
       summary: Obtener teléfonos de usuarios
-      description: Retorna la lista de teléfonos asociados a usuarios
+      description: |
+        Retorna la lista de teléfonos asociados a usuarios.
+        Parámetro de consulta opcional: usuario_id.
       security:
         - BearerAuth: []
+      parameters:
+        - in: query
+          name: usuario_id
+          description: Filtrar por ID de usuario
       responses:
         '200':
           description: Lista de teléfonos
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    usuario_id:
-                      type: integer
-                      example: 1
-                    telefono:
-                      type: string
-                      example: "+598 99 123 456"
-                    tipo:
-                      type: string
-                      enum: [movil, fijo, trabajo]
-                      example: movil
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
-  /api/apiUsuariosTelefonos/guardar:
     post:
       tags:
         - Usuarios
       summary: Agregar teléfono a usuario
-      description: Agrega un nuevo teléfono a un usuario
+      description: |
+        Agrega un nuevo teléfono a un usuario.
+        Requiere: usuario_id, numero, tipo.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - idUsuario
-                - numero
-              properties:
-                idUsuario:
-                  type: integer
-                  example: 1
-                numero:
-                  type: integer
-                  example: 99123456
+            example:
+              usuario_id: 1
+              numero: "+504 9999-8888"
+              tipo: "movil"
       responses:
         '201':
           description: Teléfono agregado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Teléfono agregado exitosamente
-                  telefono:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 1
-                      usuario_id:
-                        type: integer
-                        example: 1
-                      telefono:
-                        type: string
-                        example: "+598 99 123 456"
-                      tipo:
-                        type: string
-                        example: movil
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Solicitud incorrecta
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
+        '404':
+          description: Usuario no encontrado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
+
+  /api/apiImagenesUsuarios:
+    get:
+      tags:
+        - Usuarios
+      summary: Obtener imagen de perfil
+      description: |
+        Retorna la imagen de perfil del usuario.
+        Parámetro de consulta opcional: usuario_id (si no se proporciona, retorna la del usuario autenticado).
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: usuario_id
+          description: ID del usuario
+      responses:
+        '200':
+          description: Imagen obtenida exitosamente
+        '401':
+          description: No autorizado
+        '404':
+          description: Imagen no encontrada
+        '500':
+          description: Error interno del servidor
+
+    post:
+      tags:
+        - Usuarios
+      summary: Subir imagen de perfil
+      description: Sube o actualiza la imagen de perfil del usuario autenticado
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            example:
+              imagen: "(binary file)"
+      responses:
+        '200':
+          description: Imagen subida exitosamente
+        '400':
+          description: Error en la validación
+        '401':
+          description: No autorizado
+        '500':
+          description: Error interno del servidor

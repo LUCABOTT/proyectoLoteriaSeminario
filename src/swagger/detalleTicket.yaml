@@ -5,39 +5,22 @@ paths:
         - Detalle Tickets
       summary: Obtener detalles de tickets
       description: |
-        Retorna los detalles de tickets (números comprados). 
+        Retorna los detalles de tickets (números comprados).
         Opcionalmente se puede filtrar por ID de ticket específico.
+        Parámetro de consulta opcional: ticket.
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: ticket
-          schema:
-            type: integer
           description: ID del ticket para filtrar detalles específicos
-          example: 123
       responses:
         "200":
           description: Lista de detalles de tickets
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/DetalleTicket"
-              example:
-                - IdDetalle: 1
-                  IdTicket: 123
-                  NumeroComprado: 45
-                  Subtotal: 25.00
-                - IdDetalle: 2
-                  IdTicket: 123
-                  NumeroComprado: 72
-                  Subtotal: 25.00
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          description: No autorizado
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          description: Error interno del servidor
 
   /api/detalle-tickets/guardar:
     post:
@@ -47,74 +30,26 @@ paths:
       description: |
         Agrega un nuevo número comprado a un ticket existente.
         El ticket debe pertenecer a un sorteo que esté en estado 'abierto'.
+        Requiere: IdTicket, NumeroComprado (0-99), Subtotal.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - IdTicket
-                - NumeroComprado
-                - Subtotal
-              properties:
-                IdTicket:
-                  type: integer
-                  description: ID del ticket al que se agregará el número
-                  example: 123
-                NumeroComprado:
-                  type: integer
-                  minimum: 0
-                  maximum: 99
-                  description: Número comprado (debe estar entre 0 y 99)
-                  example: 45
-                Subtotal:
-                  type: number
-                  format: decimal
-                  minimum: 0
-                  description: Subtotal del número comprado
-                  example: 25.00
             example:
-              IdTicket: 123
+              IdTicket: 1
               NumeroComprado: 45
               Subtotal: 25.00
       responses:
         "201":
           description: Detalle de ticket creado exitosamente
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DetalleTicket"
-              example:
-                IdDetalle: 456
-                IdTicket: 123
-                NumeroComprado: 45
-                Subtotal: 25.00
         "400":
           description: Error de validación o datos inválidos
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-              examples:
-                ticket_no_existe:
-                  summary: Ticket no existe
-                  value:
-                    error: "El IdTicket no existe"
-                numero_invalido:
-                  summary: Número inválido
-                  value:
-                    error: "NumeroComprado debe ser entero"
-                subtotal_invalido:
-                  summary: Subtotal inválido
-                  value:
-                    error: "Subtotal debe ser mayor o igual a 0"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          description: No autorizado
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          description: Error interno del servidor
 
   /api/detalle-tickets/editar:
     put:
@@ -126,94 +61,33 @@ paths:
         - El sorteo asociado al ticket está en estado 'abierto'
         - El nuevo número no está duplicado en el mismo ticket
         - Se mantienen las validaciones de rango (0-99)
+        Parámetro de consulta: id (requerido).
+        Campos opcionales: IdTicket, NumeroComprado, Subtotal.
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: id
           required: true
-          schema:
-            type: integer
           description: ID del detalle de ticket a editar
-          example: 456
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                IdTicket:
-                  type: integer
-                  description: |
-                    ID del ticket (opcional). Si se cambia, el ticket debe existir 
-                    y su sorteo debe estar abierto
-                  example: 124
-                NumeroComprado:
-                  type: integer
-                  minimum: 0
-                  maximum: 99
-                  description: |
-                    Número comprado (opcional). Debe estar entre 0-99 y no 
-                    duplicarse en el mismo ticket
-                  example: 67
-                Subtotal:
-                  type: number
-                  format: decimal
-                  minimum: 0
-                  description: Subtotal del número comprado (opcional)
-                  example: 30.00
             example:
               NumeroComprado: 67
               Subtotal: 30.00
       responses:
         "200":
           description: Detalle de ticket editado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Detalle editado exitosamente"
-                  detalle:
-                    $ref: "#/components/schemas/DetalleTicket"
         "400":
           description: Error de validación o reglas de negocio
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-              examples:
-                sorteo_cerrado:
-                  summary: Sorteo cerrado
-                  value:
-                    error: "No se puede editar el detalle porque el sorteo asociado ya no está abierto"
-                numero_duplicado:
-                  summary: Número duplicado
-                  value:
-                    error: "Ese número ya existe en este ticket (no se permiten repetidos)"
-                ticket_no_existe:
-                  summary: Ticket no existe
-                  value:
-                    error: "El ticket indicado no existe"
-                sorteo_no_abierto:
-                  summary: Sorteo no abierto
-                  value:
-                    error: "El sorteo del ticket debe estar \"abierto\""
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          description: No autorizado
         "404":
           description: Detalle de ticket no encontrado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "El id del detalle no existe"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          description: Error interno del servidor
 
   /api/detalle-tickets/eliminar:
     delete:
@@ -223,137 +97,22 @@ paths:
       description: |
         Elimina un detalle de ticket específico del sistema.
         Solo se puede eliminar si el sorteo asociado permite modificaciones.
+        Parámetro de consulta: id (requerido).
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: id
           required: true
-          schema:
-            type: integer
           description: ID del detalle de ticket a eliminar
-          example: 456
       responses:
         "200":
           description: Detalle de ticket eliminado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Detalle eliminado exitosamente"
         "400":
           description: Error de validación
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationError"
-              examples:
-                id_requerido:
-                  summary: ID requerido
-                  value:
-                    error: "No se permiten id vacíos"
-                id_invalido:
-                  summary: ID inválido
-                  value:
-                    error: "El id debe ser un entero"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          description: No autorizado
         "404":
           description: Detalle de ticket no encontrado
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "El id del detalle no existe"
         "500":
-          $ref: "#/components/responses/InternalServerError"
-
-components:
-  schemas:
-    DetalleTicket:
-      type: object
-      properties:
-        IdDetalle:
-          type: integer
-          description: ID único del detalle de ticket
-          example: 1
-          readOnly: true
-        IdTicket:
-          type: integer
-          description: ID del ticket al que pertenece este detalle
-          example: 123
-        NumeroComprado:
-          type: integer
-          minimum: 0
-          maximum: 99
-          description: Número comprado en este detalle (0-99)
-          example: 45
-        Subtotal:
-          type: number
-          format: decimal
-          minimum: 0
-          description: Subtotal de este número específico
-          example: 25.00
-      required:
-        - IdTicket
-        - NumeroComprado
-        - Subtotal
-
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          description: Mensaje de error
-
-  responses:
-    Unauthorized:
-      description: No autorizado - Token inválido o faltante
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-          example:
-            error: "Token inválido o expirado"
-
-    InternalServerError:
-      description: Error interno del servidor
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-          example:
-            error: "Error interno del servidor"
-
-# Ejemplos de uso para detalle de tickets
-examples:
-  detalle_ticket_workflow:
-    summary: Flujo completo de gestión de detalles de tickets
-    description: |
-      1. Crear un ticket con POST /api/tickets/guardar
-      2. Agregar números específicos con POST /api/detalle-tickets/guardar
-      3. Ver detalles de un ticket con GET /api/detalle-tickets/listar?ticket={ticketId}
-      4. Modificar un número si es necesario con PUT /api/detalle-tickets/editar?id={detalleId}
-      5. Eliminar un número si es necesario con DELETE /api/detalle-tickets/eliminar?id={detalleId}
-
-  validacion_reglas_negocio:
-    summary: Reglas de negocio importantes
-    description: |
-      - Los números deben estar entre 0 y 99
-      - No se permiten números duplicados en el mismo ticket
-      - Solo se puede modificar si el sorteo está 'abierto'
-      - El ticket debe existir y estar válido
-      - Los subtotales deben ser mayores o iguales a 0
-
-  casos_de_error_comunes:
-    summary: Casos de error más frecuentes
-    description: |
-      1. Intentar agregar un número duplicado en el mismo ticket
-      2. Intentar modificar cuando el sorteo ya está cerrado o sorteado
-      3. Usar un IdTicket que no existe
-      4. Números fuera del rango 0-99
-      5. Subtotales negativos
+          description: Error interno del servidor

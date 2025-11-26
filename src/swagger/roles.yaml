@@ -10,96 +10,40 @@ paths:
       responses:
         '200':
           description: Lista de roles
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    nombre:
-                      type: string
-                      example: administrador
-                    descripcion:
-                      type: string
-                      example: Acceso completo al sistema
-                    activo:
-                      type: boolean
-                      example: true
-                    fecha_creacion:
-                      type: string
-                      format: date-time
-                      example: "2024-01-01T00:00:00Z"
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
     post:
       tags:
         - Roles y Permisos
       summary: Crear un nuevo rol
-      description: Crea un nuevo rol en el sistema (solo administradores)
+      description: |
+        Crea un nuevo rol en el sistema (solo administradores).
+        Requiere: nombre, descripcion.
+        Opcional: activo (default true).
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - nombre
-                - descripcion
-              properties:
-                nombre:
-                  type: string
-                  example: moderador
-                descripcion:
-                  type: string
-                  example: Gestión de contenido y usuarios
-                activo:
-                  type: boolean
-                  default: true
-                  example: true
+            example:
+              nombre: "moderador"
+              descripcion: "Gestión de contenido y usuarios"
+              activo: true
       responses:
         '201':
           description: Rol creado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Rol creado exitosamente
-                  rol:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 3
-                      nombre:
-                        type: string
-                        example: moderador
-                      descripcion:
-                        type: string
-                        example: Gestión de contenido y usuarios
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Solicitud incorrecta
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '409':
           description: El rol ya existe
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
   /api/apiFunciones:
     get:
@@ -112,449 +56,146 @@ paths:
       responses:
         '200':
           description: Lista de funciones
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    nombre:
-                      type: string
-                      example: gestionar_usuarios
-                    descripcion:
-                      type: string
-                      example: Crear, editar y eliminar usuarios
-                    modulo:
-                      type: string
-                      example: usuarios
-                    activo:
-                      type: boolean
-                      example: true
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
     post:
       tags:
         - Roles y Permisos
       summary: Crear nueva función
-      description: Crea una nueva función/permiso en el sistema (solo administradores)
+      description: |
+        Crea una nueva función/permiso en el sistema (solo administradores).
+        Requiere: nombre, descripcion, modulo.
+        Opcional: activo (default true).
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - nombre
-                - descripcion
-                - modulo
-              properties:
-                nombre:
-                  type: string
-                  example: gestionar_sorteos
-                descripcion:
-                  type: string
-                  example: Crear y administrar sorteos
-                modulo:
-                  type: string
-                  example: sorteos
-                activo:
-                  type: boolean
-                  default: true
-                  example: true
+            example:
+              nombre: "gestionar_sorteos"
+              descripcion: "Crear y administrar sorteos"
+              modulo: "sorteos"
+              activo: true
       responses:
         '201':
           description: Función creada exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Función creada exitosamente
-                  funcion:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 10
-                      nombre:
-                        type: string
-                        example: gestionar_sorteos
-                      descripcion:
-                        type: string
-                        example: Crear y administrar sorteos
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Solicitud incorrecta
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
   /api/apiRolesUsuarios:
     get:
       tags:
         - Roles y Permisos
       summary: Obtener roles de usuarios
-      description: Retorna las asignaciones de roles a usuarios
+      description: |
+        Retorna las asignaciones de roles a usuarios.
+        Parámetros de consulta opcionales: usuario_id, rol_id.
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: usuario_id
-          schema:
-            type: integer
           description: Filtrar por ID de usuario
         - in: query
           name: rol_id
-          schema:
-            type: integer
           description: Filtrar por ID de rol
       responses:
         '200':
           description: Lista de asignaciones rol-usuario
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    usuario_id:
-                      type: integer
-                      example: 1
-                    rol_id:
-                      type: integer
-                      example: 2
-                    fecha_asignacion:
-                      type: string
-                      format: date-time
-                      example: "2024-01-15T10:00:00Z"
-                    usuario:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        nombre:
-                          type: string
-                          example: Juan
-                        apellido:
-                          type: string
-                          example: Pérez
-                        email:
-                          type: string
-                          example: juan@ejemplo.com
-                    rol:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 2
-                        nombre:
-                          type: string
-                          example: usuario
-                        descripcion:
-                          type: string
-                          example: Usuario regular del sistema
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
     post:
       tags:
         - Roles y Permisos
       summary: Asignar rol a usuario
-      description: Asigna un rol específico a un usuario (solo administradores)
+      description: |
+        Asigna un rol específico a un usuario (solo administradores).
+        Requiere: usuario_id, rol_id.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - usuario_id
-                - rol_id
-              properties:
-                usuario_id:
-                  type: integer
-                  example: 5
-                rol_id:
-                  type: integer
-                  example: 2
+            example:
+              usuario_id: 5
+              rol_id: 2
       responses:
         '201':
           description: Rol asignado exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Rol asignado exitosamente
-                  asignacion:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 15
-                      usuario_id:
-                        type: integer
-                        example: 5
-                      rol_id:
-                        type: integer
-                        example: 2
-                      fecha_asignacion:
-                        type: string
-                        format: date-time
-                        example: "2024-11-08T12:00:00Z"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Solicitud incorrecta
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
+        '404':
+          description: Usuario o rol no encontrado
         '409':
-          description: El usuario ya tiene este rol asignado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: La asignación ya existe
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
   /api/apiFuncionesRoles:
     get:
       tags:
         - Roles y Permisos
-      summary: Obtener funciones de roles
-      description: Retorna las funciones asignadas a cada rol
+      summary: Obtener funciones asignadas a roles
+      description: |
+        Retorna las funciones asignadas a cada rol.
+        Parámetros de consulta opcionales: rol_id, funcion_id.
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: rol_id
-          schema:
-            type: integer
           description: Filtrar por ID de rol
         - in: query
           name: funcion_id
-          schema:
-            type: integer
           description: Filtrar por ID de función
       responses:
         '200':
           description: Lista de asignaciones función-rol
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      example: 1
-                    rol_id:
-                      type: integer
-                      example: 1
-                    funcion_id:
-                      type: integer
-                      example: 1
-                    fecha_asignacion:
-                      type: string
-                      format: date-time
-                      example: "2024-01-01T00:00:00Z"
-                    rol:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        nombre:
-                          type: string
-                          example: administrador
-                        descripcion:
-                          type: string
-                          example: Acceso completo al sistema
-                    funcion:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        nombre:
-                          type: string
-                          example: gestionar_usuarios
-                        descripcion:
-                          type: string
-                          example: Crear, editar y eliminar usuarios
-                        modulo:
-                          type: string
-                          example: usuarios
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
 
     post:
       tags:
         - Roles y Permisos
       summary: Asignar función a rol
-      description: Asigna una función específica a un rol (solo administradores)
+      description: |
+        Asigna una función/permiso a un rol (solo administradores).
+        Requiere: rol_id, funcion_id.
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - rol_id
-                - funcion_id
-              properties:
-                rol_id:
-                  type: integer
-                  example: 2
-                funcion_id:
-                  type: integer
-                  example: 5
+            example:
+              rol_id: 2
+              funcion_id: 3
       responses:
         '201':
           description: Función asignada al rol exitosamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Función asignada al rol exitosamente
-                  asignacion:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 25
-                      rol_id:
-                        type: integer
-                        example: 2
-                      funcion_id:
-                        type: integer
-                        example: 5
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: Solicitud incorrecta
         '401':
-          $ref: '#/components/responses/Unauthorized'
-        '409':
-          description: La función ya está asignada a este rol
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/apiUsuarios/{id}/permisos:
-    get:
-      tags:
-        - Roles y Permisos
-      summary: Obtener permisos de usuario
-      description: Retorna todos los permisos efectivos de un usuario (a través de sus roles)
-      security:
-        - BearerAuth: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID del usuario
-      responses:
-        '200':
-          description: Permisos del usuario
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  usuario_id:
-                    type: integer
-                    example: 1
-                  usuario:
-                    type: object
-                    properties:
-                      nombre:
-                        type: string
-                        example: Juan
-                      apellido:
-                        type: string
-                        example: Pérez
-                      email:
-                        type: string
-                        example: juan@ejemplo.com
-                  roles:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        nombre:
-                          type: string
-                          example: administrador
-                        descripcion:
-                          type: string
-                          example: Acceso completo al sistema
-                  permisos:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        nombre:
-                          type: string
-                          example: gestionar_usuarios
-                        descripcion:
-                          type: string
-                          example: Crear, editar y eliminar usuarios
-                        modulo:
-                          type: string
-                          example: usuarios
-                        desde_rol:
-                          type: string
-                          example: administrador
-                  permisos_por_modulo:
-                    type: object
-                    additionalProperties:
-                      type: array
-                      items:
-                        type: string
-                    example:
-                      usuarios: ["gestionar_usuarios", "ver_usuarios"]
-                      sorteos: ["gestionar_sorteos", "ver_sorteos"]
-                      billetera: ["gestionar_billetera"]
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: No autorizado
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Rol o función no encontrada
+        '409':
+          description: La asignación ya existe
         '500':
-          $ref: '#/components/responses/InternalServerError'
+          description: Error interno del servidor
