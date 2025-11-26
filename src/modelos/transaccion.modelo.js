@@ -9,7 +9,7 @@ const Transaccion = database.define(
     monto: { type: DataTypes.DECIMAL, allowNull: false },
     ticket: { type: DataTypes.BIGINT, allowNull: true },
     tipo: {
-      type: DataTypes.ENUM("Recarga", "Pago", "Reembolso"),
+      type: DataTypes.ENUM("Recarga", "Pago", "Reembolso", "Compra de ticket"),
       allowNull: false,
     },
   },

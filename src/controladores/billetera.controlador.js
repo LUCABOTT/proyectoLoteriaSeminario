@@ -202,4 +202,54 @@ billeteraControlador.paypalCapturarOrden = async (request, response) => {
   }
 };
 
+/**
+ * Obtiene el historial de transacciones de la billetera del usuario autenticado
+ *
+ * @async
+ * @function obtenerHistorial
+ * @param {Object} request - Objeto de solicitud HTTP de Express
+ * @param {Object} request.user - Usuario autenticado del middleware
+ * @param {Object} request.query - Parámetros de consulta
+ * @param {number} request.query.limite - Límite de transacciones a retornar (por defecto 50)
+ * @param {number} request.query.pagina - Página actual (por defecto 1)
+ * @param {Object} response - Objeto de respuesta HTTP de Express
+ * @returns {Promise<void>} JSON con el historial de transacciones
+ * @throws {Error} 401 - Usuario no autenticado
+ * @throws {Error} 500 - Error interno del servidor
+ */
+billeteraControlador.obtenerHistorial = async (request, response) => {
+  try {
+    if (!request.user?.id) {
+      return response.status(401).json({
+        error: MENSAJE_ERROR.USUARIO_NO_AUTENTICADO,
+      });
+    }
+
+    const limite = parseInt(request.query.limite) || 50;
+    const pagina = parseInt(request.query.pagina) || 1;
+    const offset = (pagina - 1) * limite;
+
+    const billetera = await billeteraServicio.asegurarBilletera(request.user.id);
+    
+    const { count, rows } = await require("../modelos/transaccion.modelo").findAndCountAll({
+      where: { billetera: billetera.id },
+      order: [["creada", "DESC"]],
+      limit: limite,
+      offset: offset,
+    });
+
+    response.json({
+      usuario: request.user.id,
+      transacciones: rows,
+      total: count,
+      pagina: pagina,
+      totalPaginas: Math.ceil(count / limite),
+    });
+  } catch (error) {
+    response.status(500).json({
+      error: MENSAJE_ERROR.SERVIDOR,
+    });
+  }
+};
+
 module.exports = billeteraControlador;

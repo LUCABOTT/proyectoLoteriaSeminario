@@ -12,6 +12,8 @@ const ESTADOS = ['pendiente','pagado','cancelado','reembolsado','anulado'];
 
 rutas.get('/listar', controlador.Listar);
 
+rutas.get('/mis-tickets', authenticateToken, controlador.MisTickets);
+
 rutas.post('/guardar',
   body('IdUsuario').isInt().withMessage('IdUsuario debe ser un entero')
     .custom(async (value) => {

@@ -45,6 +45,97 @@ paths:
                     type: string
                     example: "Error interno del servidor"
 
+  /api/billetera/historial:
+    get:
+      tags:
+        - Billetera
+      summary: Obtener historial de transacciones del usuario autenticado
+      description: |
+        Retorna el historial completo de transacciones del usuario autenticado.
+        Incluye todas las operaciones: recargas, compras de tickets, pagos y reembolsos.
+        Soporta paginación para manejar grandes cantidades de registros.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: limite
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Número de transacciones por página
+        - in: query
+          name: pagina
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Número de página (comienza en 1)
+      responses:
+        "200":
+          description: Historial obtenido exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuario:
+                    type: integer
+                    example: 123
+                    description: ID del usuario autenticado
+                  transacciones:
+                    type: array
+                    description: Lista de transacciones
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        monto:
+                          type: number
+                          format: decimal
+                          example: 50.00
+                        tipo:
+                          type: string
+                          enum: [Recarga, Pago, Reembolso, Compra de ticket]
+                          example: "Compra de ticket"
+                        ticket:
+                          type: integer
+                          nullable: true
+                          example: 42
+                          description: ID del ticket relacionado (si aplica)
+                        creada:
+                          type: string
+                          format: date-time
+                          example: "2024-11-26T10:30:00Z"
+                          description: Fecha de creación de la transacción
+                  total:
+                    type: integer
+                    example: 25
+                    description: Total de transacciones del usuario
+                  pagina:
+                    type: integer
+                    example: 1
+                    description: Página actual
+                  totalPaginas:
+                    type: integer
+                    example: 3
+                    description: Total de páginas disponibles
+        "401":
+          description: Usuario no autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Usuario no autenticado"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/billetera/recargar:
     post:
       tags:

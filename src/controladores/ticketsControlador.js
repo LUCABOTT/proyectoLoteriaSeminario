@@ -15,6 +15,27 @@ controlador.Listar = async (_req, res) => {
   }
 };
 
+controlador.MisTickets = async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
+
+    const tickets = await Tickets.findAll({
+      where: { IdUsuario: req.user.id },
+      order: [["FechaCompra", "DESC"]],
+    });
+
+    res.json({
+      usuario: req.user.id,
+      tickets: tickets,
+      total: tickets.length
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
 controlador.Guardar = async (req, res) => {
   const errores = validationResult(req);
   if (!errores.isEmpty()) return res.status(400).json(errores.array());
@@ -77,36 +98,43 @@ controlador.Comprar = async (req, res) => {
   const errores = validationResult(req);
   if (!errores.isEmpty()) return res.status(400).json(errores.array());
   try {
-    const usuarioAuth = req.user && (req.user.id || req.user.Id || req.user.ID);
-    const IdUsuario = usuarioAuth || req.body.IdUsuario;
-    if (!IdUsuario) return res.status(401).json({ error: "Usuario no autenticado" });
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Usuario no autenticado" });
+    }
 
+    const IdUsuario = req.user.id;
     const { Total } = req.body;
     const totalNumeric = parseFloat(Total || 0);
 
+    if (totalNumeric <= 0) {
+      return res.status(400).json({ error: "El total debe ser mayor que 0" });
+    }
+
     const result = await db.transaction(async (t) => {
-      let billetera = null;
+      await billeteraService.debitar(
+        IdUsuario, 
+        totalNumeric, 
+        "Compra de ticket", 
+        { 
+          transaction: t,
+          meta: { IdSorteo: req.body.IdSorteo }
+        }
+      );
 
-      if (totalNumeric > 0) {
-        billetera = await billeteraService.debitar(IdUsuario, totalNumeric, "Pago", { transaction: t, skipTransaccion: true });
-      }
-
-      const payload = Object.assign({}, req.body, { IdUsuario });
+      const payload = { ...req.body, IdUsuario, Estado: "pagado" };
       const ticket = await Tickets.create(payload, { transaction: t });
-
-      if (totalNumeric > 0) {
-        ticket.Estado = "pagado";
-        await ticket.save({ transaction: t });
-        const billeteraId = billetera ? billetera.id : (await billeteraService.asegurarBilletera(IdUsuario, { transaction: t })).id;
-        await Transaccion.create({ billetera: billeteraId, monto: totalNumeric, tipo: "Pago", ticket: ticket.IdTicket }, { transaction: t });
-      }
 
       return ticket;
     });
 
-    res.status(201).json(result);
+    res.status(201).json({
+      mensaje: "Ticket comprado exitosamente",
+      ticket: result
+    });
   } catch (e) {
-    if (e.message && e.message.includes("Saldo insuficiente")) return res.status(402).json({ error: e.message });
+    if (e.message && e.message.includes("Saldo insuficiente")) {
+      return res.status(402).json({ error: e.message });
+    }
     res.status(400).json({ error: e.message });
   }
 };

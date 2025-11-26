@@ -7,6 +7,8 @@ const rutas = Router();
 
 rutas.get("/saldo", authenticateToken, controlador.obtenerSaldo);
 
+rutas.get("/historial", authenticateToken, controlador.obtenerHistorial);
+
 rutas.post(
   "/recargar",
   authenticateToken,

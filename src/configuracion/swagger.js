@@ -7,7 +7,38 @@ const options = {
     info: {
       title: "API Lotería",
       version: "1.0.0",
+      description: "API para el sistema de lotería con gestión de usuarios, billeteras, tickets y sorteos",
     },
+    tags: [
+      {
+        name: "Autenticación",
+        description: "Endpoints para registro, login y gestión de cuentas",
+      },
+      {
+        name: "Billetera",
+        description: "Gestión de billetera virtual y saldo del usuario",
+      },
+      {
+        name: "Tickets",
+        description: "Compra y gestión de tickets de lotería",
+      },
+      {
+        name: "PayPal",
+        description: "Integración con PayPal para recargas",
+      },
+      {
+        name: "Sorteos",
+        description: "Gestión de sorteos de lotería",
+      },
+      {
+        name: "Juegos",
+        description: "Gestión de juegos de lotería",
+      },
+      {
+        name: "Usuarios",
+        description: "Gestión de usuarios del sistema",
+      },
+    ],
     servers: [
       {
         url: `http://localhost:${process.env.PORT || 3004}`,
@@ -118,33 +149,34 @@ const options = {
         },
         Ticket: {
           type: "object",
-          required: ["usuario_id", "sorteo_id", "numeros_elegidos"],
+          required: ["IdSorteo", "Total"],
           properties: {
-            id: {
+            IdTicket: {
               type: "integer",
               description: "ID único del ticket",
             },
-            usuario_id: {
+            IdUsuario: {
               type: "integer",
               description: "ID del usuario que compró el ticket",
             },
-            sorteo_id: {
+            IdSorteo: {
               type: "integer",
               description: "ID del sorteo",
             },
-            numeros_elegidos: {
-              type: "string",
-              description: "Números elegidos por el usuario",
-            },
-            fecha_compra: {
+            FechaCompra: {
               type: "string",
               format: "date-time",
               description: "Fecha y hora de compra",
             },
-            estado: {
+            Estado: {
               type: "string",
-              enum: ["activo", "cancelado", "ganador"],
+              enum: ["pendiente", "pagado", "cancelado", "reembolsado", "anulado"],
               description: "Estado del ticket",
+            },
+            Total: {
+              type: "number",
+              format: "decimal",
+              description: "Monto total del ticket en HNL",
             },
           },
         },
@@ -155,19 +187,62 @@ const options = {
               type: "integer",
               description: "ID único de la billetera",
             },
-            usuario_id: {
+            usuario: {
               type: "integer",
               description: "ID del usuario propietario",
             },
             saldo: {
               type: "number",
               format: "decimal",
-              description: "Saldo disponible en la billetera",
+              description: "Saldo disponible en HNL",
             },
-            fecha_creacion: {
+            estado: {
+              type: "string",
+              enum: ["Activa", "Congelada"],
+              description: "Estado de la billetera",
+            },
+            creada: {
               type: "string",
               format: "date-time",
               description: "Fecha de creación de la billetera",
+            },
+            actualizada: {
+              type: "string",
+              format: "date-time",
+              description: "Fecha de última actualización",
+            },
+          },
+        },
+        Transaccion: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "ID único de la transacción",
+            },
+            billetera: {
+              type: "integer",
+              description: "ID de la billetera",
+            },
+            monto: {
+              type: "number",
+              format: "decimal",
+              description: "Monto de la transacción",
+            },
+            tipo: {
+              type: "string",
+              enum: ["Recarga", "Pago", "Reembolso", "Compra de ticket"],
+              description: "Tipo de transacción",
+            },
+            ticket: {
+              type: "integer",
+              nullable: true,
+              description: "ID del ticket relacionado (si aplica)",
+            },
+            creada: {
+              type: "string",
+              format: "date-time",
+              description: "Fecha de creación de la transacción",
             },
           },
         },
@@ -253,6 +328,22 @@ const options = {
             "application/json": {
               schema: {
                 $ref: "#/components/schemas/Error",
+              },
+            },
+          },
+        },
+        PaymentRequired: {
+          description: "Saldo insuficiente en la billetera",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  error: {
+                    type: "string",
+                    example: "Saldo insuficiente",
+                  },
+                },
               },
             },
           },

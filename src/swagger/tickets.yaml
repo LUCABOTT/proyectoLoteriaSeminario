@@ -93,6 +93,51 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /api/tickets/mis-tickets:
+    get:
+      tags:
+        - Tickets
+      summary: Obtener mis tickets comprados
+      description: |
+        Retorna todos los tickets comprados por el usuario autenticado.
+        Los tickets se ordenan por fecha de compra descendente (más recientes primero).
+        Solo el usuario autenticado puede ver sus propios tickets.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Lista de tickets del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuario:
+                    type: integer
+                    example: 123
+                    description: ID del usuario autenticado
+                  tickets:
+                    type: array
+                    description: Lista de tickets del usuario
+                    items:
+                      $ref: "#/components/schemas/Ticket"
+                  total:
+                    type: integer
+                    example: 5
+                    description: Cantidad total de tickets del usuario
+        "401":
+          description: Usuario no autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Usuario no autenticado"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /api/tickets/guardar:
     post:
       tags:
@@ -165,7 +210,12 @@ paths:
       tags:
         - Tickets
       summary: Comprar ticket (Usuario autenticado)
-      description: Permite a un usuario autenticado comprar un ticket. El usuario se obtiene del token JWT. Debita el saldo de la billetera y registra la transacción asociada al ticket.
+      description: |
+        Permite a un usuario autenticado comprar un ticket de lotería.
+        El usuario se obtiene automáticamente del token JWT.
+        El sistema debita automáticamente el monto de la billetera del usuario
+        y registra la transacción en el historial con tipo "Compra de ticket".
+        El ticket se crea con estado "pagado" automáticamente.
       security:
         - BearerAuth: []
       requestBody:
@@ -182,38 +232,39 @@ paths:
                   type: integer
                   description: ID del sorteo para el cual se compra el ticket
                   example: 1
+                Total:
+                  type: number
+                  format: float
+                  minimum: 0.01
+                  description: Monto total del ticket en HNL (debe ser mayor que 0)
+                  example: 50.00
                 FechaCompra:
                   type: string
                   format: date-time
                   description: Fecha de compra (opcional, se genera automáticamente si no se proporciona)
-                  example: "2024-11-25T10:30:00Z"
-                Estado:
-                  type: string
-                  enum: [pendiente, pagado, cancelado, reembolsado, anulado]
-                  description: Estado del ticket (opcional, se asigna automáticamente según el pago)
-                  example: "pendiente"
-                Total:
-                  type: number
-                  format: float
-                  minimum: 0
-                  description: Monto total del ticket. Si es mayor a 0, se debita de la billetera.
-                  example: 50.00
+                  example: "2024-11-26T10:30:00Z"
       responses:
         "201":
           description: Ticket comprado exitosamente
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/Ticket"
-                  - type: object
-                    properties:
-                      Estado:
-                        type: string
-                        example: "pagado"
-                        description: Estado del ticket después de la compra
+                type: object
+                properties:
+                  mensaje:
+                    type: string
+                    example: "Ticket comprado exitosamente"
+                  ticket:
+                    allOf:
+                      - $ref: "#/components/schemas/Ticket"
+                      - type: object
+                        properties:
+                          Estado:
+                            type: string
+                            example: "pagado"
+                            description: Estado del ticket (siempre "pagado" después de compra exitosa)
         "400":
-          description: Error en la validación (sorteo no existe, datos inválidos, etc.)
+          description: Error en la validación (datos inválidos, total debe ser mayor que 0, etc.)
           content:
             application/json:
               schema:
@@ -221,7 +272,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "El IdSorteo no existe"
+                    example: "El total debe ser mayor que 0"
         "401":
           description: Usuario no autenticado o token inválido
           content:
