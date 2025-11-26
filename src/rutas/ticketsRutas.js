@@ -4,6 +4,7 @@ const controlador = require('../controladores/ticketsControlador');
 const Modelo = require('../modelos/ticketsModelo');
 const Usuario = require('../modelos/modelosUsuarios/usuarios');
 const Sorteo = require('../modelos/sorteoModelo');
+const authenticateToken = require('../middlewares/auth');
 
 const rutas = Router();
 
@@ -37,6 +38,25 @@ rutas.post('/guardar',
   body('Total').isFloat({ min: 0 }).withMessage('Total debe ser mayor o igual a 0'),
   controlador.Guardar
 );
+
+rutas.post('/comprar',
+  authenticateToken,
+  body('IdSorteo').isInt().withMessage('IdSorteo debe ser un entero')
+    .custom(async (value) => {
+      if (value) {
+        const buscar = await Sorteo.findOne({ where: { Id: value } });
+        if (!buscar) throw new Error('El IdSorteo no existe');
+      } else {
+        throw new Error('No se permiten IdSorteo vacíos');
+      }
+      return true;
+    }),
+  body('FechaCompra').optional().isISO8601().withMessage('FechaCompra debe ser una fecha ISO'),
+  body('Estado').optional().isIn(ESTADOS).withMessage('Estado inválido'),
+  body('Total').isFloat({ min: 0 }).withMessage('Total debe ser mayor o igual a 0'),
+  controlador.Comprar
+);
+
 rutas.put(
   '/editar',
   // id en query + existencia
