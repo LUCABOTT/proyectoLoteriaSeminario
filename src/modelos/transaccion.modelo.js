@@ -7,6 +7,7 @@ const Transaccion = database.define(
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     billetera: { type: DataTypes.INTEGER, allowNull: false },
     monto: { type: DataTypes.DECIMAL, allowNull: false },
+    ticket: { type: DataTypes.BIGINT, allowNull: true },
     tipo: {
       type: DataTypes.ENUM("Recarga", "Pago", "Reembolso"),
       allowNull: false,

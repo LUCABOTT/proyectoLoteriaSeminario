@@ -97,8 +97,8 @@ paths:
     post:
       tags:
         - Tickets
-      summary: Comprar ticket
-      description: Compra un nuevo ticket para un sorteo específico
+      summary: Guardar ticket (Administrativo)
+      description: Crea un nuevo ticket especificando el usuario manualmente (uso administrativo)
       security:
         - BearerAuth: []
       requestBody:
@@ -132,29 +132,13 @@ paths:
                   example: 50.00
       responses:
         "201":
-          description: Ticket(s) comprado(s) exitosamente
+          description: Ticket creado exitosamente
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Ticket comprado exitosamente
-                  tickets:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Ticket"
-                  total_pagado:
-                    type: number
-                    format: decimal
-                    example: 50.00
-                  saldo_restante:
-                    type: number
-                    format: decimal
-                    example: 450.00
+                $ref: "#/components/schemas/Ticket"
         "400":
-          description: Error en la compra (sorteo cerrado, números inválidos, etc.)
+          description: Error en la validación
           content:
             application/json:
               schema:
@@ -168,11 +152,96 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Sorteo no encontrado
+          description: Sorteo o usuario no encontrado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/tickets/comprar:
+    post:
+      tags:
+        - Tickets
+      summary: Comprar ticket (Usuario autenticado)
+      description: Permite a un usuario autenticado comprar un ticket. El usuario se obtiene del token JWT. Debita el saldo de la billetera y registra la transacción asociada al ticket.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - IdSorteo
+                - Total
+              properties:
+                IdSorteo:
+                  type: integer
+                  description: ID del sorteo para el cual se compra el ticket
+                  example: 1
+                FechaCompra:
+                  type: string
+                  format: date-time
+                  description: Fecha de compra (opcional, se genera automáticamente si no se proporciona)
+                  example: "2024-11-25T10:30:00Z"
+                Estado:
+                  type: string
+                  enum: [pendiente, pagado, cancelado, reembolsado, anulado]
+                  description: Estado del ticket (opcional, se asigna automáticamente según el pago)
+                  example: "pendiente"
+                Total:
+                  type: number
+                  format: float
+                  minimum: 0
+                  description: Monto total del ticket. Si es mayor a 0, se debita de la billetera.
+                  example: 50.00
+      responses:
+        "201":
+          description: Ticket comprado exitosamente
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Ticket"
+                  - type: object
+                    properties:
+                      Estado:
+                        type: string
+                        example: "pagado"
+                        description: Estado del ticket después de la compra
+        "400":
+          description: Error en la validación (sorteo no existe, datos inválidos, etc.)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "El IdSorteo no existe"
+        "401":
+          description: Usuario no autenticado o token inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Usuario no autenticado"
+        "402":
+          description: Saldo insuficiente en la billetera
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Saldo insuficiente"
         "500":
           $ref: "#/components/responses/InternalServerError"
 

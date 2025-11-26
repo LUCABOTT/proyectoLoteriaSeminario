@@ -77,6 +77,14 @@ paths:
                   minimum: 0.01
                   example: 100.00
                   description: Cantidad a recargar (debe ser mayor que 0)
+                moneda:
+                  type: string
+                  enum: [HNL, USD]
+                  example: HNL
+                  description: |
+                    Moneda del monto enviado. Si se omite se asume `HNL`.
+                    Si se envía `USD`, el servidor convertirá el valor a HNL
+                    usando la variable de entorno `HNL_USD_RATE` antes de acreditar.
       responses:
         "200":
           description: Saldo recargado exitosamente
@@ -137,7 +145,11 @@ paths:
       tags:
         - Billetera
       summary: Crear orden PayPal para recarga
-      description: Crea una orden de PayPal (intent CAPTURE) para recargar saldo; devuelve el approveUrl.
+      description: |
+        Crea una orden de PayPal (intent CAPTURE) para recargar saldo; devuelve el approveUrl.
+        El endpoint recibe el `monto` en Lempiras (HNL) y el servidor lo convierte
+        a USD (redondeado a 2 decimales) antes de llamar a la API de PayPal, ya
+        que PayPal sólo acepta pagos en USD en este flujo.
       requestBody:
         required: true
         content:
@@ -151,10 +163,10 @@ paths:
                   example: 123
                 monto:
                   type: number
-                  example: 25.50
-                currency:
-                  type: string
-                  example: USD
+                  example: 100.00
+                  description: |
+                    Monto en Lempiras (HNL). El servidor convertirá este valor a USD
+                    usando `HNL_USD_RATE` antes de crear la orden en PayPal.
       responses:
         "200":
           description: Orden creada
@@ -184,7 +196,10 @@ paths:
       tags:
         - Billetera
       summary: Capturar orden PayPal y acreditar saldo
-      description: Captura una orden aprobada y acredita el monto a la billetera del usuario.
+      description: |
+        Captura una orden aprobada y acredita el monto a la billetera del usuario.
+        PayPal devuelve el monto en USD; el servidor convertirá ese monto a HNL
+        usando `HNL_USD_RATE` antes de acreditar la billetera.
       requestBody:
         required: true
         content:
