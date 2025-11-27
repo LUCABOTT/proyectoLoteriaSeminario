@@ -22,7 +22,12 @@ const acreditar = async (usuario, monto, tipo = "Recarga", opciones = {}) => {
     const billetera = await asegurarBilletera(usuario, { transaction: opciones.transaction });
     billetera.saldo = parseFloat(billetera.saldo || 0) + parseFloat(monto);
     await billetera.save({ transaction: opciones.transaction });
-    await Transaccion.create({ billetera: billetera.id, monto, tipo }, { transaction: opciones.transaction });
+    if (!opciones.skipTransaccion) {
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: opciones.transaction },
+      );
+    }
     return billetera;
   }
 
@@ -30,7 +35,12 @@ const acreditar = async (usuario, monto, tipo = "Recarga", opciones = {}) => {
     const billetera = await asegurarBilletera(usuario, { transaction: transaccion });
     billetera.saldo = parseFloat(billetera.saldo || 0) + parseFloat(monto);
     await billetera.save({ transaction: transaccion });
-    await Transaccion.create({ billetera: billetera.id, monto, tipo }, { transaction: transaccion });
+    if (!opciones.skipTransaccion) {
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: transaccion },
+      );
+    }
     return billetera;
   });
 };
@@ -44,7 +54,12 @@ const debitar = async (usuario, monto, tipo = "Pago", opciones = {}) => {
     if (saldoActual < parseFloat(monto)) throw new Error("Saldo insuficiente");
     billetera.saldo = saldoActual - parseFloat(monto);
     await billetera.save({ transaction: opciones.transaction });
-    await Transaccion.create({ billetera: billetera.id, monto, tipo }, { transaction: opciones.transaction });
+    if (!opciones.skipTransaccion) {
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: opciones.transaction },
+      );
+    }
     return billetera;
   }
 
@@ -54,7 +69,12 @@ const debitar = async (usuario, monto, tipo = "Pago", opciones = {}) => {
     if (saldoActual < parseFloat(monto)) throw new Error("Saldo insuficiente");
     billetera.saldo = saldoActual - parseFloat(monto);
     await billetera.save({ transaction: transaccion });
-    await Transaccion.create({ billetera: billetera.id, monto, tipo }, { transaction: transaccion });
+    if (!opciones.skipTransaccion) {
+      await Transaccion.create(
+        { billetera: billetera.id, monto, tipo, ...(opciones.meta || {}) },
+        { transaction: transaccion },
+      );
+    }
     return billetera;
   });
 };

@@ -4,22 +4,10 @@ paths:
       tags:
         - Sorteos
       summary: Listar sorteos
-      description: Obtiene todos los sorteos disponibles.
+      description: Obtiene todos los sorteos disponibles
       responses:
         '200':
           description: Lista de sorteos obtenida correctamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  msj:
-                    type: string
-                    example: Lista de sorteos obtenida correctamente
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Sorteo'
         '500':
           description: Error interno al listar los sorteos
 
@@ -31,44 +19,21 @@ paths:
       description: |
         Crea un nuevo sorteo asociado a un juego existente.
         No envíe NumerosGanadores al crear (se generarán automáticamente cuando el sorteo pase a 'cerrado').
+        Requiere: IdJuego, Cierre.
+        Opcional: Estado (default 'abierto').
       security:
         - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              required:
-                - IdJuego
-                - Cierre
-              properties:
-                IdJuego:
-                  type: integer
-                  example: 2
-                Cierre:
-                  type: string
-                  format: date-time
-                  example: '2025-11-18T20:13:00Z'
-                Estado:
-                  type: string
-                  enum: [abierto, cerrado, sorteado, anulado]
-                  example: abierto
-              additionalProperties: false
-            examples:
-              CrearBasico:
-                summary: Crear sorteo sin NumerosGanadores
-                value:
-                  IdJuego: 2
-                  Cierre: '2025-11-18T20:13:00Z'
-                  Estado: abierto
+            example:
+              IdJuego: 1
+              Cierre: "2025-12-31T20:00:00Z"
+              Estado: "abierto"
       responses:
         '201':
           description: Sorteo creado exitosamente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Sorteo'
         '400':
           description: Error en la validación
         '404':
@@ -82,50 +47,24 @@ paths:
         - Sorteos
       summary: Editar un sorteo existente
       description: |
-        Actualiza la información de un sorteo. 
-        
-        **Reglas de transición de estado:**
-        - abierto → cerrado → sorteado → anulado
-        - No se puede retroceder en el flujo
+        Actualiza la información de un sorteo.
+        Reglas de transición de estado: abierto → cerrado → sorteado → anulado (no se puede retroceder).
+        Parámetros de consulta: id (requerido).
+        Campos opcionales: IdJuego, Cierre, Estado, NumerosGanadores.
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: id
           required: true
-          schema:
-            type: integer
           description: ID del sorteo a editar
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                IdJuego:
-                  type: integer
-                  example: 2
-                  description: ID del juego (opcional, debe existir)
-                Cierre:
-                  type: string
-                  format: date-time
-                  example: '2024-12-26T20:00:00Z'
-                  description: Nueva fecha de cierre (opcional)
-                Estado:
-                  type: string
-                  enum: [abierto, cerrado, sorteado, anulado]
-                  example: cerrado
-                  description: Nuevo estado del sorteo (opcional)
-                NumerosGanadores:
-                  type: array
-                  items:
-                    type: integer
-                  example: [5, 10, 15, 20, 25]
-                  description: |
-                    Lista de números ganadores (0-99, sin repetir).
-                    - Pega 3: requiere 3 números
-                    - Superpremio: requiere 5 números
+            example:
+              Estado: "cerrado"
+              NumerosGanadores: [5, 10, 15, 20, 25]
       responses:
         '200':
           description: Sorteo editado exitosamente
@@ -141,15 +80,15 @@ paths:
       tags:
         - Sorteos
       summary: Eliminar un sorteo existente
-      description: Elimina un sorteo del sistema mediante su ID.
+      description: |
+        Elimina un sorteo del sistema mediante su ID.
+        Parámetro de consulta: id (requerido).
       security:
         - BearerAuth: []
       parameters:
         - in: query
           name: id
           required: true
-          schema:
-            type: integer
           description: ID del sorteo a eliminar
       responses:
         '204':
@@ -160,29 +99,3 @@ paths:
           description: El id del sorteo no existe
         '500':
           description: Error interno del servidor
-
-components:
-  schemas:
-    Sorteo:
-      type: object
-      properties:
-        Id:
-          type: integer
-          example: 4
-        IdJuego:
-          type: integer
-          example: 2
-        Cierre:
-          type: string
-          format: date-time
-          example: '2025-11-18T20:13:00.000Z'
-        Estado:
-          type: string
-          enum: [abierto, cerrado, sorteado, anulado]
-          example: abierto
-        NumerosGanadores:
-          type: array
-          items:
-            type: integer
-          nullable: true
-          example: null

@@ -1,101 +1,200 @@
 const { validationResult } = require("express-validator");
 const billeteraServicio = require("../services/billetera.servicio");
-const paypal = require("../services/paypal.servicio");
+const paypalBilleteraServicio = require("../services/paypal-billetera.servicio");
 
-const controlador = {};
+const billeteraControlador = {};
 
-controlador.obtenerSaldo = async (request, response) => {
-  try {
-    const { id } = request.params;
-    const saldo = await billeteraServicio.obtenerSaldo(id);
-
-    response.json({ usuario: id, saldo });
-  } catch (error) {
-    response.status(500).json({ error: "Error interno del servidor" });
-  }
+const MENSAJE_ERROR = {
+  SERVIDOR: "Error interno del servidor",
+  MONTO_INVALIDO: "El monto debe ser un número válido mayor que 0",
+  USUARIO_NO_AUTENTICADO: "Usuario no autenticado",
 };
 
-controlador.recargar = async (request, response) => {
-  const errores = validationResult(request);
-  if (!errores.isEmpty()) return response.status(400).json(errores.array());
-
-  try {
-    const { id, monto } = request.body;
-    const billetera = await billeteraServicio.acreditar(
-      id,
-      parseFloat(monto),
-      "Recarga",
-    );
-
-    response.json({ mensaje: "Saldo acreditado correctamente", billetera });
-  } catch (error) {
-    response.status(500).json({ error: "Error interno del servidor" });
-  }
+const TIPO_TRANSACCION = {
+  RECARGA: "Recarga",
 };
 
-controlador.paypalCrearOrden = async (request, response) => {
-  const errores = validationResult(request);
-  if (!errores.isEmpty()) return response.status(400).json(errores.array());
-
+billeteraControlador.obtenerSaldo = async (request, response) => {
   try {
-    const { id, monto } = request.body;
-
-    if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
-      return response
-        .status(400)
-        .json({ error: "El monto debe ser un número válido mayor que 0" });
+    if (!request.user?.id) {
+      return response.status(401).json({
+        error: MENSAJE_ERROR.USUARIO_NO_AUTENTICADO,
+      });
     }
 
-    const orden = await paypal.crearOrden({
-      monto: parseFloat(monto),
-      usuario: id,
-    });
-    const aprobacion = (orden.links || []).find((l) => l.rel === "approve");
+    const saldo = await billeteraServicio.obtenerSaldo(request.user.id);
+
     response.json({
-      id: orden.id,
-      status: orden.status,
-      approveUrl: aprobacion && aprobacion.href,
+      usuario: request.user.id,
+      saldo,
     });
   } catch (error) {
-    response.status(400).json({ error: error.message });
+    response.status(500).json({
+      error: MENSAJE_ERROR.SERVIDOR,
+    });
   }
 };
 
-controlador.paypalCapturarOrden = async (request, response) => {
+const validarMonto = (monto) => {
+  if (!monto) return false;
+
+  const montoNumerico = parseFloat(monto);
+  return !isNaN(montoNumerico) && montoNumerico > 0;
+};
+
+billeteraControlador.recargar = async (request, response) => {
   const errores = validationResult(request);
-  if (!errores.isEmpty()) return response.status(400).json(errores.array());
+  if (!errores.isEmpty()) {
+    return response.status(400).json(errores.array());
+  }
 
   try {
-    const { orden, usuario } = request.body;
+    if (!request.user?.id) {
+      return response.status(401).json({
+        error: MENSAJE_ERROR.USUARIO_NO_AUTENTICADO,
+      });
+    }
 
-    const resultado = await paypal.capturarOrden(orden);
-    if (resultado.status !== "COMPLETED")
-      return response.status(400).json({ error: "La orden no fue completada" });
-    const unidadDeCompra =
-      (resultado.purchase_units && resultado.purchase_units[0]) || {};
-    const idPersonalizado = unidadDeCompra.custom_id;
-    const captura =
-      unidadDeCompra.payments &&
-      unidadDeCompra.payments.captures &&
-      unidadDeCompra.payments.captures[0];
-    const monto = captura && captura.amount && parseFloat(captura.amount.value);
-    const usuarioId =
-      usuario || (idPersonalizado ? parseInt(idPersonalizado, 10) : null);
-    if (!usuarioId)
-      return response
-        .status(400)
-        .json({ error: "No se pudo determinar el usuarioId" });
-    if (!monto || monto <= 0)
-      return response.status(400).json({ error: "Monto capturado inválido" });
-    const billetera = await billeteraServicio.acreditar(
-      usuarioId,
-      monto,
-      "Recarga",
-    );
-    response.json({ mensaje: "Recarga completada", billetera });
+    const { monto } = request.body;
+
+    if (!validarMonto(monto)) {
+      return response.status(400).json({
+        error: MENSAJE_ERROR.MONTO_INVALIDO,
+      });
+    }
+
+    const montoHNL = parseFloat(monto);
+
+    const billetera = await billeteraServicio.acreditar(request.user.id, montoHNL, TIPO_TRANSACCION.RECARGA);
+
+    response.json({
+      mensaje: "Saldo acreditado correctamente",
+      billetera,
+    });
   } catch (error) {
-    response.status(500).json({ error: "Error interno del servidor" });
+    response.status(500).json({
+      error: MENSAJE_ERROR.SERVIDOR,
+    });
   }
 };
 
-module.exports = controlador;
+billeteraControlador.paypalCrearOrden = async (request, response) => {
+  const errores = validationResult(request);
+  if (!errores.isEmpty()) {
+    return response.status(400).json(errores.array());
+  }
+
+  try {
+    if (!request.user?.id) {
+      return response.status(401).json({
+        error: MENSAJE_ERROR.USUARIO_NO_AUTENTICADO,
+      });
+    }
+
+    const { monto } = request.body;
+
+    if (!validarMonto(monto)) {
+      return response.status(400).json({
+        error: MENSAJE_ERROR.MONTO_INVALIDO,
+      });
+    }
+
+    const montoHNL = parseFloat(monto);
+    const resultado = await paypalBilleteraServicio.crearOrdenRecarga(request.user.id, montoHNL);
+
+    response.json(resultado);
+  } catch (error) {
+    response.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+billeteraControlador.paypalCapturarOrden = async (request, response) => {
+  const errores = validationResult(request);
+  if (!errores.isEmpty()) {
+    return response.status(400).json(errores.array());
+  }
+
+  try {
+    if (!request.user?.id) {
+      return response.status(401).json({
+        error: MENSAJE_ERROR.USUARIO_NO_AUTENTICADO,
+      });
+    }
+
+    const { orden } = request.body;
+
+    const billetera = await paypalBilleteraServicio.capturarOrdenYAcreditar(orden, request.user.id);
+
+    response.json({
+      mensaje: "Recarga completada",
+      billetera,
+    });
+  } catch (error) {
+    const statusCode =
+      error.message.includes("completada") || error.message.includes("determinar") || error.message.includes("inválido")
+        ? 400
+        : 500;
+    response.status(statusCode).json({
+      error: error.message || MENSAJE_ERROR.SERVIDOR,
+    });
+  }
+};
+
+billeteraControlador.obtenerHistorial = async (request, response) => {
+  try {
+    if (!request.user?.id) {
+      return response.status(401).json({
+        error: MENSAJE_ERROR.USUARIO_NO_AUTENTICADO,
+      });
+    }
+
+    const limite = parseInt(request.query.limite) || 50;
+    const pagina = parseInt(request.query.pagina) || 1;
+    const offset = (pagina - 1) * limite;
+
+    const billetera = await billeteraServicio.asegurarBilletera(request.user.id);
+
+    const { count, rows } = await require("../modelos/transaccion.modelo").findAndCountAll({
+      where: { billetera: billetera.id },
+      order: [["creada", "DESC"]],
+      limit: limite,
+      offset: offset,
+    });
+
+    response.json({
+      usuario: request.user.id,
+      transacciones: rows,
+      total: count,
+      pagina: pagina,
+      totalPaginas: Math.ceil(count / limite),
+    });
+  } catch (error) {
+    response.status(500).json({
+      error: MENSAJE_ERROR.SERVIDOR,
+    });
+  }
+};
+
+billeteraControlador.paypalCapturarOrdenRedirect = async (request, response) => {
+  try {
+    const { token } = request.query;
+
+    if (!token) {
+      return response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?error=token_invalido`);
+    }
+
+    const billetera = await paypalBilleteraServicio.capturarOrdenYAcreditarSinUsuario(token);
+
+    response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?exito=true&monto=${billetera.saldo}`);
+  } catch (error) {
+    response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?error=${encodeURIComponent(error.message)}`);
+  }
+};
+
+billeteraControlador.paypalCancelarOrden = async (request, response) => {
+  response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?cancelado=true`);
+};
+
+module.exports = billeteraControlador;

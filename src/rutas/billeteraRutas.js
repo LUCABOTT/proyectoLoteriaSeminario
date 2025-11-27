@@ -1,26 +1,34 @@
 const { Router } = require("express");
-const { body, param } = require("express-validator");
+const { body } = require("express-validator");
+const authenticateToken = require("../middlewares/auth");
 const controlador = require("../controladores/billetera.controlador");
 
 const rutas = Router();
 
-rutas.get("/saldo/:id", controlador.obtenerSaldo);
+rutas.get("/saldo", authenticateToken, controlador.obtenerSaldo);
+
+rutas.get("/historial", authenticateToken, controlador.obtenerHistorial);
 
 rutas.post(
   "/recargar",
+  authenticateToken,
   [
-    body("id").notEmpty().withMessage("id es requerido"),
     body("monto")
       .notEmpty()
       .isFloat({ gt: 0 })
       .withMessage("monto debe ser mayor que 0"),
+    body("moneda")
+      .optional()
+      .isIn(["HNL", "USD"])
+      .withMessage("moneda debe ser 'HNL' o 'USD'"),
   ],
   controlador.recargar,
 );
+
 rutas.post(
   "/paypal/crear",
+  authenticateToken,
   [
-    body("id").notEmpty().withMessage("id es requerido"),
     body("monto")
       .notEmpty()
       .isFloat({ gt: 0 })
@@ -28,12 +36,11 @@ rutas.post(
   ],
   controlador.paypalCrearOrden,
 );
+
 rutas.post(
   "/paypal/capturar",
-  [
-    body("orden").notEmpty().withMessage("orden es requerido"),
-    body("usuario").notEmpty().withMessage("usuario es requerido"),
-  ],
+  authenticateToken,
+  [body("orden").notEmpty().withMessage("orden es requerido")],
   controlador.paypalCapturarOrden,
 );
 
