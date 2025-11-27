@@ -167,6 +167,11 @@ app.use("/api/sorteos",authenticateToken, checkRoleAccess, sorteoRutas);
 app.use("/api/tickets", authenticateToken, checkRoleAccess, ticketsRutas);
 app.use("/api/detalle-tickets", authenticateToken, checkRoleAccess, detalleTicketRutas);
 
+// Rutas públicas de PayPal (callbacks sin autenticación)
+const billeteraControlador = require("./controladores/billetera.controlador");
+app.get("/api/billetera/paypal/capturar", billeteraControlador.paypalCapturarOrdenRedirect);
+app.get("/api/billetera/paypal/cancelar", billeteraControlador.paypalCancelarOrden);
+
 // Rutas de billetera (requieren autenticación)
 app.use("/api/billetera", authenticateToken, rutasBilletera);
 

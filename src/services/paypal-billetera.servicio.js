@@ -40,6 +40,12 @@ const extraerDatosCaptura = (resultado) => {
   const captura = unidadCompra.payments?.captures?.[0];
   const montoCapturado = captura?.amount?.value ? parseFloat(captura.amount.value) : null;
 
+  console.log('Datos extraídos de PayPal:', {
+    custom_id: usuarioPersonalizado,
+    monto: montoCapturado,
+    status: resultado.status
+  });
+
   return {
     usuarioPersonalizado,
     montoCapturado,
@@ -71,7 +77,34 @@ const capturarOrdenYAcreditar = async (ordenId, usuarioId) => {
   return billetera;
 };
 
+const capturarOrdenYAcreditarSinUsuario = async (ordenId) => {
+  // Primero obtener la orden para extraer el custom_id antes de capturar
+  const ordenCompleta = await paypalServicio.obtenerOrden(ordenId);
+  
+  const usuarioPersonalizadoPreCaptura = ordenCompleta.purchase_units?.[0]?.custom_id;
+  
+  console.log('Orden antes de capturar:', {
+    id: ordenId,
+    custom_id: usuarioPersonalizadoPreCaptura,
+    status: ordenCompleta.status
+  });
+  
+  if (!usuarioPersonalizadoPreCaptura) {
+    throw new Error("No se encontró el ID de usuario en la orden de PayPal");
+  }
+  
+  const usuarioId = parseInt(usuarioPersonalizadoPreCaptura, 10);
+  
+  if (isNaN(usuarioId)) {
+    throw new Error("El ID de usuario en la orden no es válido");
+  }
+  
+  // Ahora capturar la orden
+  return capturarOrdenYAcreditar(ordenId, usuarioId);
+};
+
 module.exports = {
   crearOrdenRecarga,
   capturarOrdenYAcreditar,
+  capturarOrdenYAcreditarSinUsuario,
 };

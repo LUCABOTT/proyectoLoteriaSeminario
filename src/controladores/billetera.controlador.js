@@ -177,4 +177,24 @@ billeteraControlador.obtenerHistorial = async (request, response) => {
   }
 };
 
+billeteraControlador.paypalCapturarOrdenRedirect = async (request, response) => {
+  try {
+    const { token } = request.query;
+
+    if (!token) {
+      return response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?error=token_invalido`);
+    }
+
+    const billetera = await paypalBilleteraServicio.capturarOrdenYAcreditarSinUsuario(token);
+
+    response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?exito=true&monto=${billetera.saldo}`);
+  } catch (error) {
+    response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?error=${encodeURIComponent(error.message)}`);
+  }
+};
+
+billeteraControlador.paypalCancelarOrden = async (request, response) => {
+  response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/billetera?cancelado=true`);
+};
+
 module.exports = billeteraControlador;

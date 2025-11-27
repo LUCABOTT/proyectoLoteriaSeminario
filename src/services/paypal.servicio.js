@@ -17,6 +17,11 @@ async function crearOrden({ monto, usuario, descripcion }) {
     throw new Error("El monto debe ser un número válido mayor que 0");
   }
   
+  // Validar que el usuario esté definido
+  if (!usuario) {
+    throw new Error("El ID de usuario es requerido para crear la orden");
+  }
+  
   const montoString = Number(monto).toFixed(2);
   const solicitud = new checkout.orders.OrdersCreateRequest();
   solicitud.prefer("return=representation");
@@ -25,7 +30,7 @@ async function crearOrden({ monto, usuario, descripcion }) {
     purchase_units: [
       {
         amount: { currency_code: "USD", value: montoString },
-        custom_id: String(usuario || ""),
+        custom_id: String(usuario),
         description: descripcion || "Recarga de billetera",
       },
     ],
@@ -52,4 +57,11 @@ async function capturarOrden(orden) {
   return respuesta.result;
 }
 
-module.exports = { crearOrden, capturarOrden };
+async function obtenerOrden(orden) {
+  const cliente = clientePaypal();
+  const solicitud = new checkout.orders.OrdersGetRequest(orden);
+  const respuesta = await cliente.execute(solicitud);
+  return respuesta.result;
+}
+
+module.exports = { crearOrden, capturarOrden, obtenerOrden };
