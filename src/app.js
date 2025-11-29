@@ -1,7 +1,7 @@
 require("dotenv").config();
 const passport = require("passport");
 require("./configuracion/passport"); // importante
-
+const cors = require("cors");
 const express = require("express");
 const morgan = require("morgan");
 const path = require("path");
@@ -127,6 +127,7 @@ function setupAssociations() {
 const app = express();
 const PORT = process.env.PORT || 3004;
 app.set("port", PORT);
+app.use(cors());
 
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
