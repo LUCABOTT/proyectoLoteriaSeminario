@@ -76,7 +76,6 @@ function setupAssociations() {
     foreignKey: "usercod",
     otherKey: "rolescod",
   });
-  
 
   ModeloRoles.belongsToMany(ModeloUsuario, {
     through: ModeloRolesUsuarios,
@@ -125,9 +124,31 @@ function setupAssociations() {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3004;
+const PORT = process.env.PORT || 3000;
 app.set("port", PORT);
-app.use(cors());
+
+// Configuración de CORS más robusta
+const whitelist = [
+  process.env.FRONTEND_URL,
+  "http://localhost:8080",
+  "http://localhost:5173", // Vite dev server
+  "http://localhost:4173", // Vite preview
+];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
@@ -163,8 +184,8 @@ app.use("/api/apiFuncionesRoles", authenticateToken, checkRoleAccess, rutasFunci
 app.use("/api/imagenes", express.static(path.join(__dirname, "../public/img")));
 
 // Rutas de Lotería (pon autenticación si corresponde)
-app.use("/api/juegos", authenticateToken, checkRoleAccess,juegoRutas);
-app.use("/api/sorteos",authenticateToken, checkRoleAccess, sorteoRutas);
+app.use("/api/juegos", authenticateToken, checkRoleAccess, juegoRutas);
+app.use("/api/sorteos", authenticateToken, checkRoleAccess, sorteoRutas);
 app.use("/api/tickets", authenticateToken, checkRoleAccess, ticketsRutas);
 app.use("/api/detalle-tickets", authenticateToken, checkRoleAccess, detalleTicketRutas);
 
@@ -214,6 +235,10 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
     await syncStep("Modelo DetalleTicket", DetalleTicket.sync({ alter: true }));
 
     console.log("✅ Sincronización de modelos finalizada");
+
+    // Ejecutar seeders después de sincronizar
+    const { seedRolesYFunciones } = require("./configuracion/seeders");
+    await seedRolesYFunciones();
   } catch (err) {
     console.error("Error al conectar o sincronizar:", err);
   }
