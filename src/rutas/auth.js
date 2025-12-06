@@ -28,12 +28,13 @@ router.get(
   checkGoogleOAuthConfig,
   passport.authenticate("google", { session: false }),
   (req, res) => {
-    res.json({
-      message: "Inicio de sesión con Google exitoso",
-      user: req.user.user,
-      token: req.user.token,
-    });
-  },
+    const frontendURL = "http://localhost:8080/google/callback";
+    const token = req.user.token;
+    const user = encodeURIComponent(JSON.stringify(req.user.user));
+
+    // Redirige a tu frontend pasando token y user
+    res.redirect(`${frontendURL}?token=${token}&user=${user}`);
+  }
 );
 
 module.exports = router;

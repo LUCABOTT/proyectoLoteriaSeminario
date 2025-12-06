@@ -116,6 +116,9 @@ rutas.put(
   controladorUsuario.editar
 );
 
+
+rutas.put('/editar-telefonos', controladorUsuario.editarTelefonos);
+
 // 🔹 Eliminar usuario
 rutas.delete(
   '/eliminar',
