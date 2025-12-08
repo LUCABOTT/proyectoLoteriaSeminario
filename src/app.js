@@ -173,7 +173,7 @@ app.get(
   require("./controladores/controladorUsuario/controladorUsuarios").obtenerPerfil,
 );
 app.use("/api/apiUsuarios", authenticateToken, checkRoleAccess, rutasUsuarios);
-app.use("/api/apiImagenesUsuarios", authenticateToken, checkRoleAccess, rutasImagenUsuario);
+app.use("/api/imagenesUsuarios", rutasImagenUsuario);
 app.use("/api/apiUsuariosTelefonos", authenticateToken, checkRoleAccess, rutasTelefonosUsuarios);
 app.use("/api/apiRoles", authenticateToken, checkRoleAccess, rutasRoles);
 app.use("/api/apiRolesUsuarios", authenticateToken, checkRoleAccess, rutasRolesUsuarios);

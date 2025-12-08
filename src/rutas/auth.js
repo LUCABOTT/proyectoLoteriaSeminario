@@ -8,6 +8,8 @@ router.post("/login", authController.login);
 router.post("/confirmarCuenta", authController.confirmarUsuario);
 router.post("/reactivarCuenta", authController.reactivarCuenta);
 router.post("/pinreactivacion", authController.generarPinReactivacion);
+router.post("/solicitar-reset", authController.solicitarResetPassword);
+router.post("/cambiar-contrasena",authController.cambiarContrasena)
 
 const checkGoogleOAuthConfig = (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {

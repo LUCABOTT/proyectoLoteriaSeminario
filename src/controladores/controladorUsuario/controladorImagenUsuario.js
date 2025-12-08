@@ -118,7 +118,7 @@ exports.guardarImagenUsuario = async (req, res, next) => {
       return res.status(400).json(errors.array());
     }
 
-    const { usuarioId } = req.query;
+    const { usuarioId } = req.body;
     const url = req.file.filename;
     const rutaImagen = req.file.path; // ruta real que Multer ya creó
 

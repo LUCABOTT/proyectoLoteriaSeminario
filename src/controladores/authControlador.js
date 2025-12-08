@@ -3,6 +3,7 @@ const Usuarios = require("../modelos/modelosUsuarios/usuarios");
 const RolesUsuarios = require("../modelos/modelosUsuarios/roles_usuarios");
 const enviarCorreo = require("../configuracion/correo");
 const { generarPIN } = require("../services/authServices");
+const bcrypt = require("bcryptjs");
 
 const register = async (req, res) => {
   try {
@@ -109,4 +110,53 @@ const reactivarCuenta = async (req, res) => {
   }
 };
 
-module.exports = { register, login, confirmarUsuario, reactivarCuenta, generarPinReactivacion };
+const solicitarResetPassword = async (req, res) => {
+  try {
+    const { useremail } = req.body;
+    const usuario = await Usuarios.findOne({ where: { useremail } });
+
+    if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    const nuevoPin = generarPIN();
+    usuario.useractcod = nuevoPin; // Reutilizamos useractcod para el PIN temporal
+    await usuario.save();
+
+    // Enviar correo
+    await enviarCorreo(
+      usuario.useremail,
+      "PIN para restablecer contraseña",
+      `Tu PIN para restablecer la contraseña es: ${nuevoPin}`
+    );
+
+    res.json({ message: "Se ha enviado un PIN a tu correo para restablecer la contraseña." });
+  } catch (error) {
+    console.error("Error solicitando reset de contraseña:", error);
+    res.status(500).json({ error: "Error al solicitar restablecimiento de contraseña" });
+  }
+};
+
+// -------------------------
+// 2) Cambiar contraseña usando PIN
+// -------------------------
+const cambiarContrasena = async (req, res) => {
+  try {
+    const { useremail, pin, nuevaContrasena } = req.body;
+    const usuario = await Usuarios.findOne({ where: { useremail } });
+
+    if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
+    if (usuario.useractcod !== pin) return res.status(400).json({ error: "PIN incorrecto" });
+
+    // Hashear nueva contraseña
+    const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
+    usuario.userpswd = hashedPassword;
+    usuario.useractcod = null; // Limpiar PIN
+    await usuario.save();
+
+    res.json({ message: "Contraseña actualizada correctamente. Ya puedes iniciar sesión." });
+  } catch (error) {
+    console.error("Error cambiando contraseña:", error);
+    res.status(500).json({ error: "Error al cambiar la contraseña" });
+  }
+};
+
+module.exports = { register, login, confirmarUsuario, reactivarCuenta, generarPinReactivacion, solicitarResetPassword, cambiarContrasena };
