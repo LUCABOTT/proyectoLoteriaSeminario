@@ -42,13 +42,15 @@ const funcionesIniciales = [
   
   // Rutas de Roles-Usuarios
   { fncod: '/api/apiRolesUsuarios/listar', fndsc: 'Listar roles de usuarios', fnest: 'AC' },
-  { fncod: '/api/apiRolesUsuarios/asignar', fndsc: 'Asignar rol a usuario', fnest: 'AC' },
-  { fncod: '/api/apiRolesUsuarios/revocar', fndsc: 'Revocar rol de usuario', fnest: 'AC' },
+  { fncod: '/api/apiRolesUsuarios/guardar', fndsc: 'Asignar rol a usuario', fnest: 'AC' },
+  { fncod: '/api/apiRolesUsuarios/editar', fndsc: 'Editar rol de usuario', fnest: 'AC' },
+  { fncod: '/api/apiRolesUsuarios/eliminar', fndsc: 'Eliminar rol de usuario', fnest: 'AC' },
   
   // Rutas de Funciones-Roles
   { fncod: '/api/apiFuncionesRoles/listar', fndsc: 'Listar funciones de roles', fnest: 'AC' },
-  { fncod: '/api/apiFuncionesRoles/asignar', fndsc: 'Asignar función a rol', fnest: 'AC' },
-  { fncod: '/api/apiFuncionesRoles/revocar', fndsc: 'Revocar función de rol', fnest: 'AC' },
+  { fncod: '/api/apiFuncionesRoles/guardar', fndsc: 'Asignar función a rol', fnest: 'AC' },
+  { fncod: '/api/apiFuncionesRoles/editar', fndsc: 'Editar función de rol', fnest: 'AC' },
+  { fncod: '/api/apiFuncionesRoles/eliminar', fndsc: 'Eliminar función de rol', fnest: 'AC' },
   
   // Rutas públicas/usuario
   { fncod: '/api/sorteos/activos', fndsc: 'Ver sorteos activos', fnest: 'AC' },
@@ -89,11 +91,13 @@ const funcionesPorRol = {
     '/api/apiFunciones/editar',
     '/api/apiFunciones/eliminar',
     '/api/apiRolesUsuarios/listar',
-    '/api/apiRolesUsuarios/asignar',
-    '/api/apiRolesUsuarios/revocar',
+    '/api/apiRolesUsuarios/guardar',
+    '/api/apiRolesUsuarios/editar',
+    '/api/apiRolesUsuarios/eliminar',
     '/api/apiFuncionesRoles/listar',
-    '/api/apiFuncionesRoles/asignar',
-    '/api/apiFuncionesRoles/revocar',
+    '/api/apiFuncionesRoles/guardar',
+    '/api/apiFuncionesRoles/editar',
+    '/api/apiFuncionesRoles/eliminar',
     '/api/sorteos/activos',
     '/api/tickets/comprar',
     '/api/tickets/mis-tickets',

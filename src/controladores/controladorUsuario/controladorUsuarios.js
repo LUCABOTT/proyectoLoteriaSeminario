@@ -19,8 +19,10 @@ exports.listar = async (req, res) => {
         },
         {
           model: Roles,
-          through: { attributes: [] },
-          attributes: ['rolescod', 'rolesdsc']
+          through: { 
+            attributes: ['roleuserest', 'roleuserfch', 'roleuserexp']
+          },
+          attributes: ['rolescod', 'rolesdsc', 'rolesest']
         }
       ]
     });
