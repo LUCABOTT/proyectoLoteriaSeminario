@@ -88,9 +88,11 @@ controlador.Comprar = async (req, res) => {
   
   try {
     const { IdSorteo, numeros } = req.body;
-    const IdUsuario = req.user?.IdUsuario;
+    // El token JWT contiene 'id', no 'IdUsuario'
+    const IdUsuario = req.user?.id || req.user?.IdUsuario;
 
     console.log('ticketsControlador.Comprar - Iniciando...');
+    console.log('  req.user completo:', req.user);
     console.log('  Usuario:', IdUsuario);
     console.log('  Sorteo:', IdSorteo);
     console.log('  Números:', numeros);
@@ -186,21 +188,21 @@ controlador.Comprar = async (req, res) => {
     // ============= VALIDACIÓN 9: Saldo suficiente =============
     const total = juego.PrecioJuego;
     const billetera = await Billetera.findOne({ 
-      where: { IdUsuario } 
+      where: { usuario: IdUsuario } 
     });
 
     if (!billetera) {
-      console.warn('ticketsControlador.Comprar - Billetera no encontrada');
+      console.warn('ticketsControlador.Comprar - Billetera no encontrada para usuario:', IdUsuario);
       return res.status(404).json({ error: 'Billetera del usuario no encontrada' });
     }
 
-    console.log(`Saldo actual: L. ${billetera.Saldo}, Total a cobrar: L. ${total}`);
+    console.log(`Saldo actual: L. ${billetera.saldo}, Total a cobrar: L. ${total}`);
 
-    if (billetera.Saldo < total) {
-      console.warn(`ticketsControlador.Comprar - Saldo insuficiente. Saldo: ${billetera.Saldo}, Total: ${total}`);
+    if (billetera.saldo < total) {
+      console.warn(`ticketsControlador.Comprar - Saldo insuficiente. Saldo: ${billetera.saldo}, Total: ${total}`);
       return res.status(402).json({ 
-        error: `Saldo insuficiente. Tu saldo es L. ${billetera.Saldo.toFixed(2)} pero necesitas L. ${total.toFixed(2)} para comprar este boleto.`,
-        saldoActual: billetera.Saldo,
+        error: `Saldo insuficiente. Tu saldo es L. ${billetera.saldo.toFixed(2)} pero necesitas L. ${total.toFixed(2)} para comprar este boleto.`,
+        saldoActual: billetera.saldo,
         totalRequerido: total
       });
     }
@@ -235,11 +237,11 @@ controlador.Comprar = async (req, res) => {
 
     // ============= DEBITAR DE BILLETERA =============
     await billetera.update(
-      { Saldo: billetera.Saldo - total },
+      { saldo: billetera.saldo - total },
       { transaction: t }
     );
 
-    console.log(`Billetera actualizada. Nuevo saldo: ${(billetera.Saldo - total).toFixed(2)}`);
+    console.log(`Billetera actualizada. Nuevo saldo: ${(billetera.saldo - total).toFixed(2)}`);
 
     // ============= CONFIRMAR TRANSACCIÓN =============
     await t.commit();
@@ -250,7 +252,7 @@ controlador.Comprar = async (req, res) => {
       message: 'Boleto comprado exitosamente',
       ticket: ticket.dataValues,
       detalles: detalles.map(d => d.dataValues),
-      nuevoSaldo: billetera.Saldo - total
+      nuevoSaldo: billetera.saldo - total
     });
 
   } catch (e) {

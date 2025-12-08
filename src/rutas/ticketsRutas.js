@@ -9,7 +9,7 @@ const rutas = Router();
 rutas.get('/listar', ticketsControlador.Listar);
 
 // Obtener mis tickets (Usuario autenticado)
-rutas.get('/mis-tickets', ticketsControlador.MisTickets);
+rutas.get('/mis-tickets', autenticacion, ticketsControlador.MisTickets);
 
 // Obtener ticket por ID con detalles
 rutas.get('/:id', ticketsControlador.ObtenerPorId);
@@ -17,6 +17,7 @@ rutas.get('/:id', ticketsControlador.ObtenerPorId);
 // Comprar ticket con validaciones robustas
 rutas.post(
   '/comprar',
+  autenticacion,
   body('IdSorteo').isInt({ min: 1 }).withMessage('IdSorteo debe ser un número válido'),
   body('numeros')
     .isArray({ min: 1 })
