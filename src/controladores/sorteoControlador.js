@@ -65,4 +65,32 @@ controlador.Eliminar = async (req, res) => {
   }
 };
 
+controlador.ObtenerProximo = async (_req, res) => {
+  try {
+    const { Op } = require('sequelize');
+    const Juego = require('../modelos/juegoModelo');
+    
+    const sorteo = await Sorteo.findOne({
+      where: {
+        Estado: 'abierto',
+        Cierre: { [Op.gt]: new Date() }
+      },
+      order: [['Cierre', 'ASC']],
+      include: [{
+        model: Juego,
+        as: 'juego',
+        attributes: ['Nombre', 'CantidadNumeros', 'PrecioJuego', 'Descripcion']
+      }]
+    });
+    
+    if (!sorteo) {
+      return res.json(null);
+    }
+    
+    res.json(sorteo);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+};
+
 module.exports = controlador;

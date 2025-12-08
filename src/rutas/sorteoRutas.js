@@ -11,6 +11,8 @@ const ESTADOS = ['abierto','cerrado','sorteado','anulado'];
 
 rutas.get('/listar', controlador.Listar);
 
+rutas.get('/proximo', controlador.ObtenerProximo);
+
 rutas.post('/guardar',
   body('IdJuego').isInt().withMessage('IdJuego debe ser un entero')
     .custom(async (value) => {
