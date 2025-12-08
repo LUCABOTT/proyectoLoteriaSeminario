@@ -60,6 +60,7 @@ const sorteoRutas = require("./rutas/sorteoRutas");
 const ticketsRutas = require("./rutas/ticketsRutas");
 const detalleTicketRutas = require("./rutas/detalleTicketRutas");
 const rutasBilletera = require("./rutas/billeteraRutas");
+const dashboardRutas = require("./rutas/dashboardRutas");
 
 // Asociaciones (declarar ANTES del sync)
 
@@ -105,13 +106,13 @@ function setupAssociations() {
     as: "usuario",
   });
 
-  Sorteo.belongsTo(Juego, { foreignKey: "IdJuego" });
+  Sorteo.belongsTo(Juego, { foreignKey: "IdJuego", as: "juego" });
   Juego.hasMany(Sorteo, { foreignKey: "IdJuego" });
 
-  Ticket.belongsTo(Sorteo, { foreignKey: "IdSorteo" });
+  Ticket.belongsTo(Sorteo, { foreignKey: "IdSorteo", as: "sorteo" });
   Sorteo.hasMany(Ticket, { foreignKey: "IdSorteo" });
 
-  Ticket.belongsTo(ModeloUsuario, { foreignKey: "IdUsuario" });
+  Ticket.belongsTo(ModeloUsuario, { foreignKey: "IdUsuario", as: "usuario" });
   ModeloUsuario.hasMany(Ticket, { foreignKey: "IdUsuario" });
 
   DetalleTicket.belongsTo(Ticket, { foreignKey: "IdTicket" });
@@ -196,6 +197,9 @@ app.get("/api/billetera/paypal/cancelar", billeteraControlador.paypalCancelarOrd
 
 // Rutas de billetera (requieren autenticación)
 app.use("/api/billetera", authenticateToken, rutasBilletera);
+
+// Rutas de Dashboard
+app.use("/api/dashboard", dashboardRutas);
 
 (async () => {
   try {

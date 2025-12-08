@@ -10,11 +10,17 @@ const Billetera = require('../../modelos/billetera.modelo');
 exports.listar = async (req, res) => {
  try {
     const lista = await Usuarios.findAll({
+      attributes: { exclude: ['userpswd', 'useractcod'] },
       include: [
         {
           model: TelefonosUsuarios,
           as: "telefonosusuarios",
           attributes: ["numero"]
+        },
+        {
+          model: Roles,
+          through: { attributes: [] },
+          attributes: ['rolescod', 'rolesdsc']
         }
       ]
     });

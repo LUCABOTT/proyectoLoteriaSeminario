@@ -121,8 +121,18 @@ const loginUser = async (useremail, userpswd) => {
     const valid = await bcrypt.compare(userpswd, user.userpswd);
     if (!valid) throw new Error('contraseña Incorrecta');
 
+    // Obtener roles activos del usuario
+    const rolesUsuarios = await RolesUsuarios.findAll({
+        where: { 
+            usercod: user.id, 
+            roleuserest: 'AC' 
+        }
+    });
+
+    const roles = rolesUsuarios.map(ru => ru.rolescod);
+
     const token = jwt.sign(
-        { id: user.id, email: user.useremail, tipo: user.usertipo },
+        { id: user.id, email: user.useremail, tipo: user.usertipo, roles },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRATION }
     );
@@ -135,7 +145,8 @@ const loginUser = async (useremail, userpswd) => {
             email: user.useremail,
             firstName: user.primerNombre,
             lastName: user.primerApellido,
-            tipo: user.usertipo
+            tipo: user.usertipo,
+            roles
         }
     };
 }; 
