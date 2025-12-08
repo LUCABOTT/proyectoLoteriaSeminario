@@ -4,6 +4,7 @@ const DetalleTicket = require("../modelos/detalleTicketModelo");
 const Sorteo = require("../modelos/sorteoModelo");
 const Juego = require("../modelos/juegoModelo");
 const Billetera = require("../modelos/billetera.modelo");
+const Transaccion = require("../modelos/transaccion.modelo");
 const db = require("../configuracion/db");
 
 const controlador = {};
@@ -242,6 +243,16 @@ controlador.Comprar = async (req, res) => {
     );
 
     console.log(`Billetera actualizada. Nuevo saldo: ${(billetera.saldo - total).toFixed(2)}`);
+
+    // ============= REGISTRAR TRANSACCIÓN =============
+    const transaccion = await Transaccion.create({
+      billetera: billetera.id,
+      monto: -total, // Negativo porque es un débito
+      ticket: ticket.IdTicket,
+      tipo: 'Compra de ticket'
+    }, { transaction: t });
+
+    console.log(`Transacción registrada: ID ${transaccion.id}, Monto: -${total}`);
 
     // ============= CONFIRMAR TRANSACCIÓN =============
     await t.commit();
