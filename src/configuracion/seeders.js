@@ -21,20 +21,85 @@ const rolesIniciales = [
 ];
 
 const funcionesIniciales = [
-  { fncod: 'VER_SORTEOS', fndsc: 'Ver sorteos disponibles', fnest: 'AC' },
-  { fncod: 'COMPRAR_TICKET', fndsc: 'Comprar tickets de lotería', fnest: 'AC' },
-  { fncod: 'VER_MIS_TICKETS', fndsc: 'Ver mis tickets', fnest: 'AC' },
-  { fncod: 'GESTIONAR_BILLETERA', fndsc: 'Gestionar billetera', fnest: 'AC' },
-  { fncod: 'ADMIN_USUARIOS', fndsc: 'Administrar usuarios', fnest: 'AC' },
-  { fncod: 'ADMIN_SORTEOS', fndsc: 'Administrar sorteos', fnest: 'AC' },
-  { fncod: 'ADMIN_JUEGOS', fndsc: 'Administrar juegos', fnest: 'AC' },
-  { fncod: 'VER_REPORTES', fndsc: 'Ver reportes del sistema', fnest: 'AC' }
+  // Rutas de Usuarios
+  { fncod: '/api/apiUsuarios/listar', fndsc: 'Listar usuarios', fnest: 'AC' },
+  { fncod: '/api/apiUsuarios/guardar', fndsc: 'Crear usuario', fnest: 'AC' },
+  { fncod: '/api/apiUsuarios/editar', fndsc: 'Editar usuario', fnest: 'AC' },
+  { fncod: '/api/apiUsuarios/eliminar', fndsc: 'Eliminar usuario', fnest: 'AC' },
+  { fncod: '/api/apiUsuarios/editar-telefonos', fndsc: 'Editar teléfonos', fnest: 'AC' },
+  
+  // Rutas de Roles
+  { fncod: '/api/apiRoles/listar', fndsc: 'Listar roles', fnest: 'AC' },
+  { fncod: '/api/apiRoles/guardar', fndsc: 'Crear rol', fnest: 'AC' },
+  { fncod: '/api/apiRoles/editar', fndsc: 'Editar rol', fnest: 'AC' },
+  { fncod: '/api/apiRoles/eliminar', fndsc: 'Eliminar rol', fnest: 'AC' },
+  
+  // Rutas de Funciones
+  { fncod: '/api/apiFunciones/listar', fndsc: 'Listar funciones', fnest: 'AC' },
+  { fncod: '/api/apiFunciones/guardar', fndsc: 'Crear función', fnest: 'AC' },
+  { fncod: '/api/apiFunciones/editar', fndsc: 'Editar función', fnest: 'AC' },
+  { fncod: '/api/apiFunciones/eliminar', fndsc: 'Eliminar función', fnest: 'AC' },
+  
+  // Rutas de Roles-Usuarios
+  { fncod: '/api/apiRolesUsuarios/listar', fndsc: 'Listar roles de usuarios', fnest: 'AC' },
+  { fncod: '/api/apiRolesUsuarios/asignar', fndsc: 'Asignar rol a usuario', fnest: 'AC' },
+  { fncod: '/api/apiRolesUsuarios/revocar', fndsc: 'Revocar rol de usuario', fnest: 'AC' },
+  
+  // Rutas de Funciones-Roles
+  { fncod: '/api/apiFuncionesRoles/listar', fndsc: 'Listar funciones de roles', fnest: 'AC' },
+  { fncod: '/api/apiFuncionesRoles/asignar', fndsc: 'Asignar función a rol', fnest: 'AC' },
+  { fncod: '/api/apiFuncionesRoles/revocar', fndsc: 'Revocar función de rol', fnest: 'AC' },
+  
+  // Rutas públicas/usuario
+  { fncod: '/api/sorteos/activos', fndsc: 'Ver sorteos activos', fnest: 'AC' },
+  { fncod: '/api/tickets/comprar', fndsc: 'Comprar ticket', fnest: 'AC' },
+  { fncod: '/api/tickets/mis-tickets', fndsc: 'Ver mis tickets', fnest: 'AC' },
+  { fncod: '/api/billetera/saldo', fndsc: 'Ver saldo billetera', fnest: 'AC' },
+  { fncod: '/api/billetera/recargar', fndsc: 'Recargar billetera', fnest: 'AC' }
 ];
 
 const funcionesPorRol = {
-  PBL: ['VER_SORTEOS', 'COMPRAR_TICKET', 'VER_MIS_TICKETS', 'GESTIONAR_BILLETERA'],
-  USR: ['VER_SORTEOS', 'COMPRAR_TICKET', 'VER_MIS_TICKETS', 'GESTIONAR_BILLETERA'],
-  ADM: ['VER_SORTEOS', 'COMPRAR_TICKET', 'VER_MIS_TICKETS', 'GESTIONAR_BILLETERA', 'ADMIN_USUARIOS', 'ADMIN_SORTEOS', 'ADMIN_JUEGOS', 'VER_REPORTES']
+  PBL: [
+    '/api/sorteos/activos',
+    '/api/tickets/comprar',
+    '/api/tickets/mis-tickets',
+    '/api/billetera/saldo',
+    '/api/billetera/recargar'
+  ],
+  USR: [
+    '/api/sorteos/activos',
+    '/api/tickets/comprar',
+    '/api/tickets/mis-tickets',
+    '/api/billetera/saldo',
+    '/api/billetera/recargar'
+  ],
+  ADM: [
+    // Admin tiene acceso a TODO
+    '/api/apiUsuarios/listar',
+    '/api/apiUsuarios/guardar',
+    '/api/apiUsuarios/editar',
+    '/api/apiUsuarios/eliminar',
+    '/api/apiUsuarios/editar-telefonos',
+    '/api/apiRoles/listar',
+    '/api/apiRoles/guardar',
+    '/api/apiRoles/editar',
+    '/api/apiRoles/eliminar',
+    '/api/apiFunciones/listar',
+    '/api/apiFunciones/guardar',
+    '/api/apiFunciones/editar',
+    '/api/apiFunciones/eliminar',
+    '/api/apiRolesUsuarios/listar',
+    '/api/apiRolesUsuarios/asignar',
+    '/api/apiRolesUsuarios/revocar',
+    '/api/apiFuncionesRoles/listar',
+    '/api/apiFuncionesRoles/asignar',
+    '/api/apiFuncionesRoles/revocar',
+    '/api/sorteos/activos',
+    '/api/tickets/comprar',
+    '/api/tickets/mis-tickets',
+    '/api/billetera/saldo',
+    '/api/billetera/recargar'
+  ]
 };
 
 const seedRolesYFunciones = async () => {
