@@ -1,6 +1,6 @@
 require("dotenv").config();
 const passport = require("passport");
-require("./configuracion/passport"); // importante
+require("./configuracion/passport");
 const cors = require("cors");
 const express = require("express");
 const morgan = require("morgan");
@@ -127,12 +127,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 app.set("port", PORT);
 
-// Configuración de CORS más robusta
+// Configuración de CORS
 const whitelist = [
   process.env.FRONTEND_URL,
   "http://localhost:8080",
-  "http://localhost:5173", // Vite dev server
-  "http://localhost:4173", // Vite preview
+  "http://localhost:5173",
+  "http://localhost:4173",
 ];
 const corsOptions = {
   origin: function (origin, callback) {
@@ -183,13 +183,13 @@ app.use("/api/apiFuncionesRoles", authenticateToken, checkRoleAccess, rutasFunci
 // Archivos estáticos
 app.use("/api/imagenes", express.static(path.join(__dirname, "../public/img")));
 
-// Rutas de Lotería (pon autenticación si corresponde)
-app.use("/api/juegos", authenticateToken, checkRoleAccess, juegoRutas);
-app.use("/api/sorteos", authenticateToken, checkRoleAccess, sorteoRutas);
-app.use("/api/tickets", authenticateToken, checkRoleAccess, ticketsRutas);
-app.use("/api/detalle-tickets", authenticateToken, checkRoleAccess, detalleTicketRutas);
+// Rutas de Lotería
+app.use("/api/juegos", juegoRutas);
+app.use("/api/sorteos", sorteoRutas);
+app.use("/api/tickets",authenticateToken,  ticketsRutas);
+app.use("/api/detalle-tickets",authenticateToken, detalleTicketRutas);
 
-// Rutas públicas de PayPal (callbacks sin autenticación)
+// Rutas de Billetera
 const billeteraControlador = require("./controladores/billetera.controlador");
 app.get("/api/billetera/paypal/capturar", billeteraControlador.paypalCapturarOrdenRedirect);
 app.get("/api/billetera/paypal/cancelar", billeteraControlador.paypalCancelarOrden);
@@ -211,8 +211,12 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
       console.log(`🧩 ${label} sincronizado correctamente`);
     };
 
-    // === ORDEN: primero padres del repo
+    // Padres primero
     await syncStep("Modelo Usuario", ModeloUsuario.sync({ alter: false }));
+    // Billetera depende de Usuario
+    await syncStep("Modelo Billetera", Billetera.sync({ alter: true }));
+    await syncStep("Modelo Transaccion", Transaccion.sync({ alter: true }));
+    // Resto de usuarios/roles
     await syncStep("Modelo Roles", ModeloRoles.sync({ alter: true }));
     await syncStep("Modelo Funciones", ModeloFunciones.sync({ alter: true }));
 
@@ -223,14 +227,9 @@ app.use("/api/billetera", authenticateToken, rutasBilletera);
     // Luego tablas puente del repo
     await syncStep("Modelo RolesUsuarios", ModeloRolesUsuarios.sync({ alter: true }));
     await syncStep("Modelo FuncionesRoles", ModeloFuncionesRoles.sync({ alter: true }));
-
-    // Sincronización Billetera
-    await syncStep("Modelo Billetera", Billetera.sync({ alter: true }));
-    await syncStep("Modelo Transaccion", Transaccion.sync({ alter: true }));
-
-    // === Lotería: primero padres, luego hijas
+    // Lotería
     await syncStep("Modelo Juego", Juego.sync({ alter: true }));
-    await syncStep("Modelo Sorteo", Sorteo.sync({ alter: false }));
+    await syncStep("Modelo Sorteo", Sorteo.sync({ alter: true })); // ← alter: true para crear FechaCreacion
     await syncStep("Modelo Ticket", Ticket.sync({ alter: true }));
     await syncStep("Modelo DetalleTicket", DetalleTicket.sync({ alter: true }));
 

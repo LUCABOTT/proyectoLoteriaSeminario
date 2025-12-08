@@ -10,7 +10,8 @@ const Sorteo = db.define('Sorteo', {
     allowNull: false,
     defaultValue: 'abierto'
   },
-  NumerosGanadores: { type: DataTypes.JSON, allowNull: true }
+  NumerosGanadores: { type: DataTypes.JSON, allowNull: true },
+  FechaCreacion: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, { tableName: 'Sorteo', timestamps: false });
 
 module.exports = Sorteo;

@@ -1,136 +1,56 @@
 const { Router } = require('express');
 const { body, query } = require('express-validator');
-const controlador = require('../controladores/ticketsControlador');
-const Modelo = require('../modelos/ticketsModelo');
-const Usuario = require('../modelos/modelosUsuarios/usuarios');
-const Sorteo = require('../modelos/sorteoModelo');
-const authenticateToken = require('../middlewares/auth');
+const autenticacion = require('../middlewares/auth');
+const ticketsControlador = require('../controladores/ticketsControlador');
 
 const rutas = Router();
 
-const ESTADOS = ['pendiente','pagado','cancelado','reembolsado','anulado'];
+// Listar todos los tickets (Admin)
+rutas.get('/listar', ticketsControlador.Listar);
 
-rutas.get('/listar', controlador.Listar);
+// Obtener mis tickets (Usuario autenticado)
+rutas.get('/mis-tickets', ticketsControlador.MisTickets);
 
-rutas.get('/mis-tickets', authenticateToken, controlador.MisTickets);
+// Obtener ticket por ID con detalles
+rutas.get('/:id', ticketsControlador.ObtenerPorId);
 
-rutas.post('/guardar',
-  body('IdUsuario').isInt().withMessage('IdUsuario debe ser un entero')
-    .custom(async (value) => {
-      if (value) {
-        const buscar = await Usuario.findOne({ where: { Id: value } });
-        if (!buscar) throw new Error('El IdUsuario no existe');
-      } else {
-        throw new Error('No se permiten IdUsuario vacíos');
-      }
-      return true;
-    }),
-  body('IdSorteo').isInt().withMessage('IdSorteo debe ser un entero')
-    .custom(async (value) => {
-      if (value) {
-        const buscar = await Sorteo.findOne({ where: { Id: value } });
-        if (!buscar) throw new Error('El IdSorteo no existe');
-      } else {
-        throw new Error('No se permiten IdSorteo vacíos');
-      }
-      return true;
-    }),
-  body('FechaCompra').optional().isISO8601().withMessage('FechaCompra debe ser una fecha ISO'),
-  body('Estado').optional().isIn(ESTADOS).withMessage('Estado inválido'),
-  body('Total').isFloat({ min: 0 }).withMessage('Total debe ser mayor o igual a 0'),
-  controlador.Guardar
+// Comprar ticket con validaciones robustas
+rutas.post(
+  '/comprar',
+  body('IdSorteo').isInt({ min: 1 }).withMessage('IdSorteo debe ser un número válido'),
+  body('numeros')
+    .isArray({ min: 1 })
+    .withMessage('numeros debe ser un array con al menos 1 elemento')
+    .custom((value) => Array.isArray(value) && value.every(num => Number.isInteger(num) && num >= 0))
+    .withMessage('Todos los números deben ser enteros no negativos'),
+  ticketsControlador.Comprar
 );
 
-rutas.post('/comprar',
-  authenticateToken,
-  body('IdSorteo').isInt().withMessage('IdSorteo debe ser un entero')
-    .custom(async (value) => {
-      if (value) {
-        const buscar = await Sorteo.findOne({ where: { Id: value } });
-        if (!buscar) throw new Error('El IdSorteo no existe');
-      } else {
-        throw new Error('No se permiten IdSorteo vacíos');
-      }
-      return true;
-    }),
-  body('FechaCompra').optional().isISO8601().withMessage('FechaCompra debe ser una fecha ISO'),
-  body('Estado').optional().isIn(ESTADOS).withMessage('Estado inválido'),
-  body('Total').isFloat({ min: 0 }).withMessage('Total debe ser mayor o igual a 0'),
-  controlador.Comprar
+// Crear ticket manualmente (uso interno)
+rutas.post(
+  '/guardar',
+  body('IdUsuario').isInt({ min: 1 }).withMessage('IdUsuario es requerido'),
+  body('IdSorteo').isInt({ min: 1 }).withMessage('IdSorteo es requerido'),
+  body('Total').isDecimal().withMessage('Total debe ser un número decimal válido'),
+  ticketsControlador.Guardar
 );
 
+// Editar ticket (cambiar estado, etc.)
 rutas.put(
   '/editar',
-  // id en query + existencia
-  query('id').isInt().withMessage('El id debe ser un entero'),
-  query('id').custom(async (value) => {
-    const t = await Ticket.findByPk(value);
-    if (!t) throw new Error('El id del ticket no existe');
-    return true;
-  }),
-
-  // IdUsuario (opcional)
-  body('IdUsuario')
-    .optional()
-    .isInt().withMessage('IdUsuario debe ser un entero')
-    .custom(async (value) => {
-      const u = await Usuario.findByPk(value);
-      if (!u) throw new Error('El usuario indicado no existe');
-      return true;
-    }),
-
-  // IdSorteo (opcional) - debe existir y estar 'abierto'
-  body('IdSorteo')
-    .optional()
-    .isInt().withMessage('IdSorteo debe ser un entero')
-    .custom(async (value) => {
-      const s = await Sorteo.findByPk(value);
-      if (!s) throw new Error('El sorteo indicado no existe');
-      if (s.Estado !== 'abierto') throw new Error('Solo se puede mover un ticket a un sorteo "abierto"');
-      return true;
-    }),
-
-  // FechaCompra (opcional)
-  body('FechaCompra').optional().isISO8601().withMessage('FechaCompra inválida'),
-
-  // Estado (opcional)
+  query('id').isInt({ min: 1 }).withMessage('ID debe ser un número válido'),
   body('Estado')
     .optional()
-    .isIn(['pendiente', 'pagado', 'cancelado', 'reembolsado', 'anulado'])
-    .withMessage("Estado inválido: use 'pendiente','pagado','cancelado','reembolsado','anulado'"),
-
-  // Total (opcional)
-  body('Total').optional().isFloat({ min: 0 }).withMessage('Total debe ser >= 0'),
-
-  // Reglas de negocio extra
-  body().custom(async (_, { req }) => {
-    const ticket = await Ticket.findByPk(req.query.id);
-    const sorteo = await Sorteo.findByPk(ticket.IdSorteo);
-
-    // Si el sorteo original ya está cerrado/sorteado, no permitir cambiar IdSorteo ni Total
-    if (['cerrado', 'sorteado'].includes(sorteo.Estado)) {
-      if (req.body.IdSorteo !== undefined || req.body.Total !== undefined) {
-        throw new Error('No se puede cambiar IdSorteo ni Total cuando el sorteo ya no está abierto');
-      }
-    }
-
-    return true;
-  }),
-
-  controlador.Editar
+    .isIn(['pendiente', 'pagado', 'ganador', 'ganador_pagado', 'cancelado', 'reembolsado', 'anulado'])
+    .withMessage('Estado inválido'),
+  ticketsControlador.Editar
 );
 
-rutas.delete('/eliminar',
-  query('id').isInt().withMessage('El id debe ser un entero'),
-  query('id').custom(async (value) => {
-    if (value) {
-      const buscar = await Modelo.findOne({ where: { IdTicket: value } });
-      if (!buscar) throw new Error('El id del ticket no existe');
-    } else {
-      throw new Error('No se permiten id vacíos');
-    }
-  }),
-  controlador.Eliminar
+// Eliminar ticket
+rutas.delete(
+  '/eliminar',
+  query('id').isInt({ min: 1 }).withMessage('ID debe ser un número válido'),
+  ticketsControlador.Eliminar
 );
 
 module.exports = rutas;

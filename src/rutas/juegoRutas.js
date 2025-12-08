@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const { body, query } = require('express-validator');
+const { Op } = require('sequelize');
 const controlador = require('../controladores/juegoControlador');
 const Modelo = require('../modelos/juegoModelo');
 
@@ -47,7 +48,10 @@ rutas.put('/editar',
     .custom(async (value, { req }) => {
       if (!value) return true;
       const existe = await Modelo.findOne({
-        where: { Nombre: value, Id: { [Op.ne]: req.query.id } }
+        where: { 
+          Nombre: value, 
+          Id: { [Op.ne]: req.query.id } 
+        }
       });
       if (existe) throw new Error('El nombre del juego ya existe');
       return true;
