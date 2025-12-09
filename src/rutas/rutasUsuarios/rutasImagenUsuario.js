@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { body } = require('express-validator');
 const controladorImagenUsuario = require('../../controladores/controladorUsuario/controladorImagenUsuario');
+const authenticateToken = require('../../middlewares/auth');
 
 const rutas = Router();
 
@@ -60,10 +61,15 @@ rutas.delete(
 );
 
 rutas.post('/imagen',
+  authenticateToken,
   controladorImagenUsuario.validarImagenUsuario,
   controladorImagenUsuario.guardarImagenUsuario
 )
 
-
+// Obtener imagen de perfil del usuario autenticado
+rutas.get('/perfil', 
+  authenticateToken, 
+  controladorImagenUsuario.obtenerImagenPerfil
+)
 
 module.exports = rutas;

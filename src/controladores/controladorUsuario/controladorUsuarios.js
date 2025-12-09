@@ -278,16 +278,30 @@ exports.eliminar = async (req, res) => {
 exports.obtenerPerfil = async (req, res) => {
   try {
     const userId = req.user.id;
+    const ImagenesUsuarios = require('../../modelos/modelosUsuarios/imagenes');
 
     const usuario = await Usuarios.findByPk(userId, {
-      attributes: { exclude: ['userpswd', 'useractcod'] }
+      attributes: { exclude: ['userpswd', 'useractcod'] },
+      include: [{
+        model: ImagenesUsuarios,
+        as: 'imagenes',
+        attributes: ['id', 'url'],
+        limit: 1,
+        order: [['id', 'DESC']]
+      }]
     });
 
     if (!usuario) {
       return res.status(404).json({ msj: "Usuario no encontrado" });
     }
 
-    res.json(usuario);
+    const userJson = usuario.toJSON();
+    userJson.imagenPerfil = userJson.imagenes && userJson.imagenes.length > 0 
+      ? userJson.imagenes[0].url 
+      : null;
+    delete userJson.imagenes;
+
+    res.json(userJson);
 
   } catch (error) {
     console.error("Error al obtener perfil:", error);

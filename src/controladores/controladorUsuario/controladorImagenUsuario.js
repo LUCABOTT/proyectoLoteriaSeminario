@@ -124,6 +124,16 @@ exports.guardarImagenUsuario = async (req, res, next) => {
 
     // Verificar existencia
     if (fs.existsSync(rutaImagen)) {
+      // Eliminar imágenes anteriores del usuario (opcional)
+      const imagenesAnteriores = await ImagenesUsuarios.findAll({ where: { usuarioId } });
+      for (const img of imagenesAnteriores) {
+        const rutaAnterior = path.join(__dirname, '../../../public/img/usuarios', img.url);
+        if (fs.existsSync(rutaAnterior)) {
+          fs.unlinkSync(rutaAnterior);
+        }
+        await img.destroy();
+      }
+
       const data = await ImagenesUsuarios.create({ url, usuarioId }); // usar await
 
       return res.status(201).json({
@@ -141,6 +151,38 @@ exports.guardarImagenUsuario = async (req, res, next) => {
     return res.status(500).json({
       mensaje: "Error interno del servidor",
       error: error.message
+    });
+  }
+};
+
+// Obtener imagen de perfil del usuario autenticado
+exports.obtenerImagenPerfil = async (req, res) => {
+  try {
+    const usuarioId = req.user.id;
+    
+    const imagen = await ImagenesUsuarios.findOne({ 
+      where: { usuarioId },
+      order: [['id', 'DESC']]
+    });
+
+    if (!imagen) {
+      return res.status(404).json({ 
+        msj: "No se encontró imagen de perfil",
+        url: null 
+      });
+    }
+
+    res.json({ 
+      msj: "Imagen encontrada",
+      url: imagen.url,
+      id: imagen.id
+    });
+
+  } catch (error) {
+    console.error("Error al obtener imagen de perfil:", error);
+    res.status(500).json({ 
+      msj: "Error al obtener imagen de perfil", 
+      error: error.message 
     });
   }
 };
