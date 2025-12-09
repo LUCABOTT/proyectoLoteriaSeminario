@@ -30,7 +30,7 @@ router.get(
   checkGoogleOAuthConfig,
   passport.authenticate("google", { session: false }),
   (req, res) => {
-    const frontendURL = "http://localhost:8080/google/callback";
+    const frontendURL = "http://localhost:8080/auth/google/callback";
     const token = req.user.token;
     const user = encodeURIComponent(JSON.stringify(req.user.user));
 
